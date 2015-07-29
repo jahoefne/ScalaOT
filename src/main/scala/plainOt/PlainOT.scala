@@ -81,18 +81,7 @@ object PlainOT {
       * The transform function yields an operation pair that makes the both strings
       * identical if A applies primeB and B applies primeA
       */
-    def transform(a: Operation, b: Operation): Option[TransformedPair] = {
-
-      def getElOpt(ops: Seq[Component], idx: Int): Option[Component] = try{
-          Some(ops(idx))
-        }catch{
-          case e: Exception => None
-        }
-
-
-      if (a.baseLength != b.baseLength) return None
-
-    }
+    def transform(a: Operation, b: Operation): Option[TransformedPair] = ???
 
   }
 
