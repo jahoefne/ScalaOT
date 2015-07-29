@@ -1,11 +1,9 @@
 package plainOt
 
 /**
- * A simple Implementation of Operational Transformation for Plain Text
+ * A simple Scala Implementation of Operational Transformation for Plain Text
+ * inspired by https://github.com/Operational-Transformation/ot.js
  *
- * The main problem OT sovels is if n users modify a their copy of a document in an collaborative
- * editor the state of all copies must converge to finally be equal again. That problem is not trivial because
- * of network latency and conflicts.
  */
 object PlainOT {
 
@@ -16,33 +14,32 @@ object PlainOT {
 
     lazy val targetLength: Int = ops.map(_.length).sum - ops.filter(_.isInstanceOf[DelComp]).map(_.length).sum
 
-    def skip(count: Int) : Operation = copy(ops = ops.lastOption match {
-        case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length+count) )
-        case _ => ops :+ SkipComp(count)
-      })
+    def skip(count: Int): Operation = copy(ops = ops.lastOption match {
+      case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length + count))
+      case _ => ops :+ SkipComp(count)
+    })
 
-    def skip(comp: SkipComp) : Operation = skip(comp.length)
+    def skip(comp: SkipComp): Operation = skip(comp.length)
 
-
-    def insert(str: String) : Operation= copy(ops = ops.lastOption match {
+    def insert(str: String): Operation = copy(ops = ops.lastOption match {
       case Some(x: InsComp) => ops.updated(ops.length - 1, InsComp(x.str + str))
       case _ => ops :+ InsComp(str)
     })
 
-    def insert(comp: InsComp) : Operation = insert(comp.str)
+    def insert(comp: InsComp): Operation = insert(comp.str)
 
-
-    def delete(count: Int) : Operation = copy(ops = ops.lastOption match {
-      case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length+count) )
+    def delete(count: Int): Operation = copy(ops = ops.lastOption match {
+      case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length + count))
       case _ => ops :+ DelComp(count)
     })
 
-    def delete(comp: DelComp) : Operation = delete(comp.length)
+    def delete(comp: DelComp): Operation = delete(comp.length)
 
-    override def toString: String = {for(op <- ops) yield {
-      s" [${op.getClass.getSimpleName} ${op.length}]"
-    }}.mkString(" -> ")
-
+    override def toString: String = {
+      for (op <- ops) yield {
+        s" [${op.getClass.getSimpleName} ${op.length}]"
+      }
+    }.mkString(" -> ")
 
     /**
      * Helper for apply, does the actual applying in a recursive manner in O(n)
@@ -90,7 +87,7 @@ object PlainOT {
       * str == this.invert(str).apply(this.apply(str))
       * For implementing undo
       */
-    def invert(str: String) : Operation = ???
+    def invert(str: String): Operation = ???
   }
 
   /** Companion of the Operation case class */
@@ -105,13 +102,13 @@ object PlainOT {
       */
     private def transformRec(ops1: Seq[Component],
                              ops2: Seq[Component],
-                             res:TransformedPair = TransformedPair()) : TransformedPair = {
+                             res: TransformedPair = TransformedPair()): TransformedPair = {
 
-      if(ops1.isEmpty && ops2.isEmpty)
+      if (ops1.isEmpty && ops2.isEmpty)
         return res
 
       //require(ops1.nonEmpty, "Could not compose operations, first op is too short!")
-     // require(ops2.nonEmpty, "Could not compose operations, first op is too long!")
+      // require(ops2.nonEmpty, "Could not compose operations, first op is too long!")
 
       ops1.headOption match {
         case Some(op1: InsComp) =>
@@ -123,34 +120,34 @@ object PlainOT {
         case Some(op1: SkipComp) =>
           ops2.headOption match {
             case Some(op2: SkipComp) =>
-              if(op1.length>op2.length){
+              if (op1.length > op2.length) {
                 return transformRec(
-                  ops1.updated(0, SkipComp(op1.length-op2.length)), ops2.drop(1),
+                  ops1.updated(0, SkipComp(op1.length - op2.length)), ops2.drop(1),
                   res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
-              }else if (op1.length == op2.length){
+              } else if (op1.length == op2.length) {
                 return transformRec(
                   ops1.drop(1), ops2.drop(1),
                   res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
-              }else{
+              } else {
                 return transformRec(
-                  ops1.drop(1), ops2.updated(0, SkipComp(op2.length-op1.length)),
+                  ops1.drop(1), ops2.updated(0, SkipComp(op2.length - op1.length)),
                   res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
               }
             case Some(op2: DelComp) =>
-              if(op1.length > op2.length){
+              if (op1.length > op2.length) {
                 return transformRec(
-                  ops1.updated(0, SkipComp(op1.length-op2.length)),
+                  ops1.updated(0, SkipComp(op1.length - op2.length)),
                   ops2.drop(1),
                   res.copy(prime2 = res.prime2.delete(op2.length)))
-              }else if(op1.length == op2.length){
+              } else if (op1.length == op2.length) {
                 return transformRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.copy(prime2 = res.prime2.delete(op1.length)))
-              }else{
+              } else {
                 return transformRec(
                   ops1.drop(1),
-                  ops2.updated(0, DelComp(op2.length-op1.length)),
+                  ops2.updated(0, DelComp(op2.length - op1.length)),
                   res.copy(prime2 = res.prime2.delete(op1.length)))
               }
             case _ =>
@@ -159,26 +156,26 @@ object PlainOT {
         case Some(op1: DelComp) =>
           ops2.headOption match {
             case Some(op2: DelComp) => {
-              if(op1.length > op2.length){
-                return transformRec(ops1.updated(0, DelComp(op1.length-op2.length)), ops2.drop(1), res)
-              }else if(op1.length == op2.length){
+              if (op1.length > op2.length) {
+                return transformRec(ops1.updated(0, DelComp(op1.length - op2.length)), ops2.drop(1), res)
+              } else if (op1.length == op2.length) {
                 return transformRec(ops1.drop(1), ops2.drop(1), res)
-              }else{
-                return transformRec(ops1.drop(1),ops2.updated(0, DelComp(op2.length-op1.length)), res)
+              } else {
+                return transformRec(ops1.drop(1), ops2.updated(0, DelComp(op2.length - op1.length)), res)
               }
             }
             case Some(op2: SkipComp) => {
-              if(op1.length>op2.length){
+              if (op1.length > op2.length) {
                 return transformRec(
                   ops1.updated(0, DelComp(op1.length - op2.length)),
                   ops2.drop(1),
                   res.copy(prime1 = res.prime1.delete(op2.length)))
-              }else if (op1.length == op2.length){
+              } else if (op1.length == op2.length) {
                 return transformRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.copy(prime1 = res.prime1.delete(op2.length)))
-              }else{
+              } else {
                 return transformRec(
                   ops1.drop(1),
                   ops2.updated(0, SkipComp(op2.length - op1.length)),
@@ -187,7 +184,6 @@ object PlainOT {
             }
             case _ =>
           }
-
         case _ =>
       }
 
@@ -208,17 +204,14 @@ object PlainOT {
 
   }
 
-
   /** The Result of the almighty 'transform operation' */
   case class TransformedPair(prime1: Operation = Operation(), prime2: Operation = Operation())
-
 
   /**
    * Component Interface, every component has an explicit or implicit length
    */
   sealed trait Component {
     val length: Int
-    def transform(other: Component) : Component
   }
 
   /**
@@ -227,8 +220,6 @@ object PlainOT {
    */
   private case class InsComp(str: String) extends Component {
     override lazy val length: Int = str.length
-
-    override def transform(other: Component): Component = ???
   }
 
   /**
@@ -237,8 +228,6 @@ object PlainOT {
    */
   private case class DelComp(count: Int) extends Component {
     override lazy val length: Int = count
-
-    override def transform(other: Component): Component = ???
   }
 
   /** Component for moving the cursor to the right
@@ -246,8 +235,5 @@ object PlainOT {
     */
   private case class SkipComp(ret: Int) extends Component {
     override lazy val length: Int = ret
-
-    override def transform(other: Component): Component = ???
   }
-
 }
