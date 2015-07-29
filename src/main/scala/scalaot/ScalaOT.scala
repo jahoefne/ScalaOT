@@ -1,11 +1,11 @@
-package plainOt
+package scalaot
 
 /**
  * A simple Scala Implementation of Operational Transformation for Plain Text
  * inspired by https://github.com/Operational-Transformation/ot.js
  *
  */
-object PlainOT {
+object ScalaOT {
 
   /** Represents a sequence of operations valid for any string with length -> baseLength */
   case class Operation(ops: Seq[Component] = Seq[Component]()) {

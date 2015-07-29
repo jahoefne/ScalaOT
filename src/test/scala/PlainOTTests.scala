@@ -1,17 +1,17 @@
 import org.scalatest._
-import plainOt.PlainOT
-import plainOt.PlainOT.TransformedPair
+import scalaot.ScalaOT
+import scalaot.ScalaOT.TransformedPair
 
 
-class PlainOTTests extends FunSuite {
+class ScalaOTTests extends FunSuite {
 
   test("Chaining Components of the same type does not increase the total number of components "){
-    val op1 = PlainOT.Operation()
+    val op1 = ScalaOT.Operation()
       .insert("abc")
       .skip(2)
       .delete(2)
 
-    val op2 = PlainOT.Operation()
+    val op2 = ScalaOT.Operation()
       .insert("a")
       .insert("b")
       .insert("c")
@@ -27,8 +27,8 @@ class PlainOTTests extends FunSuite {
 
   test("An OT with two clients creating a collision should resolvable by a simple transformation"){
     val start = "Hello World"
-    val op1 = PlainOT.Operation().insert("Start ").delete(11).insert(" End")
-    val op2 = PlainOT.Operation().skip(6).insert("Middle ").skip(5)
+    val op1 = ScalaOT.Operation().insert("Start ").delete(11).insert(" End")
+    val op2 = ScalaOT.Operation().skip(6).insert("Middle ").skip(5)
 
     val res1 = op1.apply(start)
     val res2 = op2.apply(start)
@@ -39,7 +39,7 @@ class PlainOTTests extends FunSuite {
     info(s"Operation2 -> ${op1.toString}")
     info(s"\tgives -> $res2")
 
-    val TransformedPair(prime1, prime2) = PlainOT.Operation.transform(op1,op2).get
+    val TransformedPair(prime1, prime2) = ScalaOT.Operation.transform(op1,op2).get
 
     val resolved1 = prime1(res2.get)
     assert(resolved1.isDefined, "resolved1 must not be None")

@@ -1,6 +1,6 @@
-package plainOt
+package scalaot
 
-import plainOt.PlainOT.TransformedPair
+import scalaot.ScalaOT.TransformedPair
 
 
 object App {
