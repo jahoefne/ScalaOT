@@ -16,11 +16,25 @@ object PlainOT {
 
     lazy val targetLength: Int = ops.map(_.length).sum - ops.filter(_.isInstanceOf[DelComp]).map(_.length).sum
 
-    def skip(pos: Int) = copy(ops = ops :+ SkipComp(pos))
+    def skip(count: Int) = copy(ops = ops.lastOption match {
+        case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length+count) )
+        case _ => ops :+ SkipComp(count)
+      })
 
-    def insert(str: String) = copy(ops = ops :+ InsComp(str))
+    def insert(str: String) = copy(ops = ops.lastOption match {
+      case Some(x: InsComp) => ops.updated(ops.length - 1, InsComp(x.str + str))
+      case _ => ops :+ InsComp(str)
+    })
 
-    def delete(count: Int) = copy(ops = ops :+ DelComp(count))
+    def delete(count: Int) = copy(ops = ops.lastOption match {
+      case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length+count) )
+      case _ => ops :+ DelComp(count)
+    })
+
+    override def toString: String = {for(op <- ops) yield {
+      s" [${op.getClass.getSimpleName} ${op.length}]"
+    }}.mkString(" -> ")
+
 
     /**
      * Helper for apply, does the actual applying in a recursive manner in O(n)
@@ -104,14 +118,18 @@ object PlainOT {
    */
   private case class InsComp(str: String) extends Component {
     override lazy val length: Int = str.length
+
+    override def transform(other: Component): Component = ???
   }
 
   /**
    * Component for deleting plain text at the current position
-   * @param str the string to delete
+   * @param count the string to delete
    */
   private case class DelComp(count: Int) extends Component {
     override lazy val length: Int = count
+
+    override def transform(other: Component): Component = ???
   }
 
   /** Component for moving the cursor to the right
@@ -119,6 +137,8 @@ object PlainOT {
     */
   private case class SkipComp(ret: Int) extends Component {
     override lazy val length: Int = ret
+
+    override def transform(other: Component): Component = ???
   }
 
 }
