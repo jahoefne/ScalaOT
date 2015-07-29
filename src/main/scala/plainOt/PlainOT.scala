@@ -170,7 +170,7 @@ object PlainOT {
             case Some(op2: SkipComp) => {
               if(op1.length>op2.length){
                 return transformRec(
-                  ops1.updated(0, DelComp(op2.length - op1.length)),
+                  ops1.updated(0, DelComp(op1.length - op2.length)),
                   ops2.drop(1),
                   res.copy(prime1 = res.prime1.delete(op2.length)))
               }else if (op1.length == op2.length){
