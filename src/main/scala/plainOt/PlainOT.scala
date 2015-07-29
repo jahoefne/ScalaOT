@@ -16,20 +16,28 @@ object PlainOT {
 
     lazy val targetLength: Int = ops.map(_.length).sum - ops.filter(_.isInstanceOf[DelComp]).map(_.length).sum
 
-    def skip(count: Int) = copy(ops = ops.lastOption match {
+    def skip(count: Int) : Operation = copy(ops = ops.lastOption match {
         case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length+count) )
         case _ => ops :+ SkipComp(count)
       })
 
-    def insert(str: String) = copy(ops = ops.lastOption match {
+    def skip(comp: SkipComp) : Operation = skip(comp.length)
+
+
+    def insert(str: String) : Operation= copy(ops = ops.lastOption match {
       case Some(x: InsComp) => ops.updated(ops.length - 1, InsComp(x.str + str))
       case _ => ops :+ InsComp(str)
     })
 
-    def delete(count: Int) = copy(ops = ops.lastOption match {
+    def insert(comp: InsComp) : Operation = insert(comp.str)
+
+
+    def delete(count: Int) : Operation = copy(ops = ops.lastOption match {
       case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length+count) )
       case _ => ops :+ DelComp(count)
     })
+
+    def delete(comp: DelComp) : Operation = delete(comp.length)
 
     override def toString: String = {for(op <- ops) yield {
       s" [${op.getClass.getSimpleName} ${op.length}]"
@@ -95,13 +103,114 @@ object PlainOT {
       * The transform function yields an operation pair that makes the both strings
       * identical if A applies primeB and B applies primeA
       */
-    def transform(a: Operation, b: Operation): Option[TransformedPair] = ???
+    private def transformRec(ops1: Seq[Component],
+                             ops2: Seq[Component],
+                             res:TransformedPair = TransformedPair()) : TransformedPair = {
+
+      if(ops1.isEmpty && ops2.isEmpty)
+        return res
+
+      //require(ops1.nonEmpty, "Could not compose operations, first op is too short!")
+     // require(ops2.nonEmpty, "Could not compose operations, first op is too long!")
+
+      ops1.headOption match {
+        case Some(op1: InsComp) =>
+          return transformRec(
+            ops1 = ops1.drop(1),
+            ops2 = ops2,
+            res = res.copy(res.prime1.insert(op1.str), res.prime2.skip(op1.length)))
+
+        case Some(op1: SkipComp) =>
+          ops2.headOption match {
+            case Some(op2: SkipComp) =>
+              if(op1.length>op2.length){
+                return transformRec(
+                  ops1.updated(0, SkipComp(op1.length-op2.length)), ops2.drop(1),
+                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+              }else if (op1.length == op2.length){
+                return transformRec(
+                  ops1.drop(1), ops2.drop(1),
+                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+              }else{
+                return transformRec(
+                  ops1.drop(1), ops2.updated(0, SkipComp(op2.length-op1.length)),
+                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+              }
+            case Some(op2: DelComp) =>
+              if(op1.length > op2.length){
+                return transformRec(
+                  ops1.updated(0, SkipComp(op1.length-op2.length)),
+                  ops2.drop(1),
+                  res.copy(prime2 = res.prime2.delete(op2.length)))
+              }else if(op1.length == op2.length){
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.copy(prime2 = res.prime2.delete(op1.length)))
+              }else{
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.updated(0, DelComp(op2.length-op1.length)),
+                  res.copy(prime2 = res.prime2.delete(op1.length)))
+              }
+            case _ =>
+          }
+
+        case Some(op1: DelComp) =>
+          ops2.headOption match {
+            case Some(op2: DelComp) => {
+              if(op1.length > op2.length){
+                return transformRec(ops1.updated(0, DelComp(op1.length-op2.length)), ops2.drop(1), res)
+              }else if(op1.length == op2.length){
+                return transformRec(ops1.drop(1), ops2.drop(1), res)
+              }else{
+                return transformRec(ops1.drop(1),ops2.updated(0, DelComp(op2.length-op1.length)), res)
+              }
+            }
+            case Some(op2: SkipComp) => {
+              if(op1.length>op2.length){
+                return transformRec(
+                  ops1.updated(0, DelComp(op2.length - op1.length)),
+                  ops2.drop(1),
+                  res.copy(prime1 = res.prime1.delete(op2.length)))
+              }else if (op1.length == op2.length){
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.copy(prime1 = res.prime1.delete(op2.length)))
+              }else{
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.updated(0, SkipComp(op2.length - op1.length)),
+                  res.copy(prime1 = res.prime1.delete(op1.length)))
+              }
+            }
+            case _ =>
+          }
+
+        case _ =>
+      }
+
+      ops2.headOption match {
+        case Some(op2: InsComp) =>
+          return transformRec(
+            ops1 = ops1,
+            ops2 = ops2.drop(1),
+            res = TransformedPair(prime1 = res.prime1.skip(op2.length), prime2 = res.prime2.insert(op2.str)))
+        case _ =>
+      }
+      res
+    }
+
+    def transform(a: Operation, b: Operation): Option[TransformedPair] = {
+      Some(transformRec(a.ops, b.ops))
+    }
 
   }
 
 
   /** The Result of the almighty 'transform operation' */
-  case class TransformedPair(primeA: Operation, primeB: Operation)
+  case class TransformedPair(prime1: Operation = Operation(), prime2: Operation = Operation())
 
 
   /**
