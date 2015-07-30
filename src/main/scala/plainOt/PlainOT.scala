@@ -76,10 +76,12 @@ object PlainOT {
     }
 
     /**
-     * Combine the current Operation with op
-     * Note: op must be the operation that directly follows this operation
+     * Combine the current Operation with it's direct successor operation nextOp
      */
-    def compose(op: Operation): Operation = ???
+    def compose(nextOp: Operation): Operation = {
+
+      this
+    }
 
     /** Computes the invert operation for input string str
       * such that:
@@ -107,12 +109,8 @@ object PlainOT {
     private def transformRec(ops1: Seq[Component],
                              ops2: Seq[Component],
                              res: TransformedPair = TransformedPair()): TransformedPair = {
-
       if (ops1.isEmpty && ops2.isEmpty)
         return res
-
-      //require(ops1.nonEmpty, "Could not compose operations, first op is too short!")
-      // require(ops2.nonEmpty, "Could not compose operations, first op is too long!")
 
       ops1.headOption match {
         case Some(op1: InsComp) =>
@@ -202,10 +200,10 @@ object PlainOT {
       res
     }
 
-    def transform(a: Operation, b: Operation): Option[TransformedPair] = {
-      Some(transformRec(a.ops, b.ops))
+    def transform(a: Operation, b: Operation): Option[TransformedPair] = b.baseLength != a.baseLength match {
+      case true => None
+      case false => Some(transformRec(a.ops, b.ops))
     }
-
   }
 
   /** The Result of the almighty 'transform operation' */
@@ -240,5 +238,4 @@ object PlainOT {
   private case class SkipComp(ret: Int) extends Component {
     override lazy val length: Int = ret
   }
-
 }
