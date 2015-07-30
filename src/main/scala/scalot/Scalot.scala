@@ -306,11 +306,20 @@ object Scalot {
           ops2.headOption match {
             case Some(op2: DelComp) =>
               if (op1.length > op2.length) {
-                return transformRec(ops1.updated(0, DelComp(op1.length - op2.length)), ops2.drop(1), res)
+                return transformRec(
+                  ops1.updated(0, DelComp(op1.length - op2.length)),
+                  ops2.drop(1),
+                  res)
               } else if (op1.length == op2.length) {
-                return transformRec(ops1.drop(1), ops2.drop(1), res)
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res)
               } else {
-                return transformRec(ops1.drop(1), ops2.updated(0, DelComp(op2.length - op1.length)), res)
+                return transformRec(
+                  ops1.drop(1),
+                  ops2.updated(0, DelComp(op2.length - op1.length)),
+                  res)
               }
             case Some(op2: SkipComp) =>
               if (op1.length > op2.length) {
