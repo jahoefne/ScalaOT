@@ -25,6 +25,29 @@ class ScalotTests extends FunSuite {
   }
 
 
+  test("Compose Test"){
+    info("Starting Compose Test…")
+    val str = "Hello World!"
+
+    val op1 = Scalot.Operation().skip(6).insert("There").delete(6)
+    val op2 = Scalot.Operation().insert("BEGINNING").skip(6).insert("MIDDLE").skip(5).insert(" END")
+
+    val res1 = op1(str).get
+    info(s"\tstr = '$str'")
+    info(s"\tOp1 is ${op1.toString}")
+    info(s"\t\t res1 = Op1(str) = $res1")
+
+    val res2 = op2(res1).get
+    info(s"\tOp2 is ${op2.toString}")
+    info(s"\t\t Op1(res) = $res2")
+
+    val composed = op1.compose(op2).get
+    val composedResult = composed(str)
+    info(s"\t\tComposed Operation is ${composed.toString}")
+    info(s"\t\t\t composed(str) = $composedResult")
+  }
+
+
   test("Chaining Components of the same type does not increase the total number of components "){
     val op1 = Scalot.Operation()
       .insert("abc")

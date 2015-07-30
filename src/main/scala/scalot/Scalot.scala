@@ -79,12 +79,109 @@ object Scalot {
      * op2(op1(str)) == op1.compose(op2)(str)
      */
     def compose(nextOp: Operation): Option[Operation] = targetLength!=nextOp.baseLength match {
-      case true =>
+      case true => composeRec(ops2= nextOp.ops)
       case _ => None
     }
 
-    private def composeRec() : Option[Operation] = {
-      composeRec()
+    private def composeRec(ops1: Seq[Component] = this.ops,
+                           ops2: Seq[Component],
+                           res: Operation = Operation()) : Option[Operation] = {
+      if (ops1.isEmpty && ops2.isEmpty)
+        return Some(res)
+
+      ops1.headOption match {
+        case Some(op1: DelComp) => return composeRec(ops1.drop(1), ops2, res.delete(op1))
+        case _ =>
+      }
+
+      ops2.headOption match {
+        case Some(op2: InsComp) => return composeRec(ops1, ops2.drop(1), res.insert(op2))
+        case _ =>
+      }
+
+      if(ops1.isEmpty || ops2.isEmpty){
+        return None
+      }
+
+      ops1.head match {
+        case op1: SkipComp =>
+          ops2.head match {
+            case op2: SkipComp =>
+              if(op1.length>op2.length){
+                return composeRec(
+                  ops1.updated(0,SkipComp(op1.length-op2.length)),
+                  ops2.drop(1),
+                  res.skip(op2))
+              }else if(op1.length==op2.length){
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.skip(op2))
+              }else{
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.updated(0,SkipComp(op2.length-op1.length)),
+                  res.skip(op1))
+              }
+            case op2: DelComp =>
+              if(op1.length>op2.length){
+                return composeRec(
+                  ops1.updated(0,DelComp(op1.length-op2.length)),
+                  ops2.drop(1),
+                  res.delete(op2))
+              }else if(op1.length==op2.length){
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.delete(op2))
+              }
+              else {
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.updated(0,DelComp(op2.length-op1.length)),
+                  res.delete(op1.length))
+              }
+          }
+        case op1: InsComp =>
+          ops2.head match {
+            case op2: DelComp => {
+              if(op1.length>op2.length){
+                return composeRec(
+                ops1.updated(0, InsComp(op1.str.substring(op2.length))),
+                ops2.drop(1),
+                res)
+              }else if (op1.length == op2.length){
+                return composeRec(
+                ops1.drop(1),
+                ops2.drop(1),
+                res)
+              }else {
+                return composeRec(
+                ops1.drop(1),
+                ops2.updated(0, DelComp(op2.length-op1.length)),
+                res)
+              }
+            }
+            case op2: SkipComp =>
+              if(op1.length > op2.length){
+                return composeRec(
+                  ops1.updated(0, InsComp(op1.str.substring(op2.length))),
+                  ops2.drop(1),
+                  res.insert(op1.str.substring(0, op2.length)))
+              }else if(op1.length==op2.length){
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.insert(op1))
+              }else{
+                return composeRec(
+                  ops1.drop(1),
+                  ops2.updated(0, SkipComp(op1.length-op2.length)),
+                  res.insert(op1))
+              }
+          }
+          throw new Exception("This should not happen!")
+      }
     }
 
 
