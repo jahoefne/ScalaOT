@@ -78,8 +78,8 @@ object Scalot {
      * such that:
      * op2(op1(str)) == op1.compose(op2)(str)
      */
-    def compose(nextOp: Operation): Option[Operation] = targetLength==nextOp.baseLength match {
-      case true => composeRec(ops2= nextOp.ops)
+    def compose(nextOp: Operation): Option[Operation] = targetLength == nextOp.baseLength match {
+      case true => composeRec(ops2 = nextOp.ops)
       case _ =>
         println("Trying to compose invalid operations!")
         None
@@ -87,7 +87,7 @@ object Scalot {
 
     private def composeRec(ops1: Seq[Component] = this.ops,
                            ops2: Seq[Component],
-                           res: Operation = Operation()) : Option[Operation] = {
+                           res: Operation = Operation()): Option[Operation] = {
       if (ops1.isEmpty && ops2.isEmpty)
         return Some(res)
 
@@ -107,29 +107,29 @@ object Scalot {
         case op1: SkipComp =>
           ops2.head match {
             case op2: SkipComp =>
-              if(op1.length>op2.length){
+              if (op1.length > op2.length) {
                 composeRec(
-                  ops1.updated(0,SkipComp(op1.length-op2.length)),
+                  ops1.updated(0, SkipComp(op1.length - op2.length)),
                   ops2.drop(1),
                   res.skip(op2))
-              }else if(op1.length==op2.length){
+              } else if (op1.length == op2.length) {
                 composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.skip(op2))
-              }else{
+              } else {
                 composeRec(
                   ops1.drop(1),
-                  ops2.updated(0,SkipComp(op2.length-op1.length)),
+                  ops2.updated(0, SkipComp(op2.length - op1.length)),
                   res.skip(op1))
               }
             case op2: DelComp =>
-              if(op1.length>op2.length){
+              if (op1.length > op2.length) {
                 composeRec(
-                  ops1.updated(0,SkipComp(op1.length-op2.length)),
+                  ops1.updated(0, SkipComp(op1.length - op2.length)),
                   ops2.drop(1),
                   res.delete(op2))
-              }else if(op1.length==op2.length){
+              } else if (op1.length == op2.length) {
                 composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
@@ -138,7 +138,7 @@ object Scalot {
               else {
                 composeRec(
                   ops1.drop(1),
-                  ops2.updated(0,DelComp(op2.length-op1.length)),
+                  ops2.updated(0, DelComp(op2.length - op1.length)),
                   res.delete(op1.length))
               }
             case _ => throw new Exception("This should not happen!")
@@ -146,37 +146,37 @@ object Scalot {
         case op1: InsComp =>
           ops2.head match {
             case op2: DelComp =>
-              if(op1.length>op2.length){
+              if (op1.length > op2.length) {
                 composeRec(
-                ops1.updated(0, InsComp(op1.str.substring(op2.length))),
-                ops2.drop(1),
-                res)
-              }else if (op1.length == op2.length){
+                  ops1.updated(0, InsComp(op1.str.substring(op2.length))),
+                  ops2.drop(1),
+                  res)
+              } else if (op1.length == op2.length) {
                 composeRec(
-                ops1.drop(1),
-                ops2.drop(1),
-                res)
-              }else {
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res)
+              } else {
                 composeRec(
-                ops1.drop(1),
-                ops2.updated(0, DelComp(op2.length-op1.length)),
-                res)
+                  ops1.drop(1),
+                  ops2.updated(0, DelComp(op2.length - op1.length)),
+                  res)
               }
             case op2: SkipComp =>
-              if(op1.length > op2.length){
+              if (op1.length > op2.length) {
                 composeRec(
                   ops1.updated(0, InsComp(op1.str.substring(op2.length))),
                   ops2.drop(1),
                   res.insert(op1.str.substring(0, op2.length)))
-              }else if(op1.length==op2.length){
+              } else if (op1.length == op2.length) {
                 composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.insert(op1))
-              }else{
+              } else {
                 composeRec(
                   ops1.drop(1),
-                  ops2.updated(0, SkipComp(op2.length-op1.length)),
+                  ops2.updated(0, SkipComp(op2.length - op1.length)),
                   res.insert(op1))
               }
             case _ => throw new Exception("This should not happen!")
@@ -191,7 +191,7 @@ object Scalot {
       * str == this.invert(str).apply(this.apply(str))
       * For implementing undo
       */
-    def invert(str: String): Operation = Operation(ops.zipWithIndex.map{
+    def invert(str: String): Operation = Operation(ops.zipWithIndex.map {
       case (x: InsComp, idx: Int) =>
         //println("Ins op count "+idx)
         DelComp(x.length)
@@ -199,12 +199,12 @@ object Scalot {
         //println("Skip op count "+idx)
         x
       case (x: DelComp, idx: Int) =>
-       // println("Del  op count "+idx)
-        val start  = Operation(ops.take(idx)).baseLength
+        // println("Del  op count "+idx)
+        val start = Operation(ops.take(idx)).baseLength
         //println("    Delete from "+start +"  to "+(start+x.length))
         //println("    Inserting Substring: "+str.substring(start, x.length+start))
         //println("    Index of substring: "+str.indexOf(str.substring(start, x.length+start)))
-        InsComp(str.substring(start, x.length+start))
+        InsComp(str.substring(start, x.length + start))
     })
   }
 
@@ -235,23 +235,52 @@ object Scalot {
           return transformRec(
             ops1 = ops1.drop(1),
             ops2 = ops2,
-            res = res.copy(res.prime1.insert(op1.str), res.prime2.skip(op1.length)))
+            res = res.copy(
+              prime1 = res.prime1.insert(op1.str),
+              prime2 =res.prime2.skip(op1.length)))
+        case _ =>
+      }
 
+      ops2.headOption match {
+        case Some(op2: InsComp) =>
+          return transformRec(
+            ops1 = ops1,
+            ops2 = ops2.drop(1),
+            res = res.copy(
+              prime1 = res.prime1.skip(op2.length),
+              prime2 = res.prime2.insert(op2.str)))
+        case _ =>
+      }
+
+      if(ops1.isEmpty || ops2.isEmpty)
+        throw new Exception("A Ops is empty when it shouldn't be")
+
+
+      ops1.headOption match {
         case Some(op1: SkipComp) =>
           ops2.headOption match {
             case Some(op2: SkipComp) =>
               if (op1.length > op2.length) {
                 return transformRec(
-                  ops1.updated(0, SkipComp(op1.length - op2.length)), ops2.drop(1),
-                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+                  ops1.updated(0, SkipComp(op1.length - op2.length)),
+                  ops2.drop(1),
+                  res.copy(
+                    prime1 = res.prime1.skip(op2),
+                    prime2 = res.prime2.skip(op2)))
               } else if (op1.length == op2.length) {
                 return transformRec(
-                  ops1.drop(1), ops2.drop(1),
-                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+                  ops1.drop(1),
+                  ops2.drop(1),
+                  res.copy(
+                    prime1 = res.prime1.skip(op2),
+                    prime2 = res.prime2.skip(op2)))
               } else {
                 return transformRec(
-                  ops1.drop(1), ops2.updated(0, SkipComp(op2.length - op1.length)),
-                  res.copy(prime1 = res.prime1.skip(op2), res.prime2.skip(op2)))
+                  ops1.drop(1),
+                  ops2.updated(0, SkipComp(op2.length - op1.length)),
+                  res.copy(
+                    prime1 = res.prime1.skip(op1),
+                    prime2 =res.prime2.skip(op1)))
               }
             case Some(op2: DelComp) =>
               if (op1.length > op2.length) {
@@ -304,15 +333,6 @@ object Scalot {
           }
         case _ =>
       }
-
-      ops2.headOption match {
-        case Some(op2: InsComp) =>
-          return transformRec(
-            ops1 = ops1,
-            ops2 = ops2.drop(1),
-            res = TransformedPair(prime1 = res.prime1.skip(op2.length), prime2 = res.prime2.insert(op2.str)))
-        case _ =>
-      }
       res
     }
   }
@@ -349,4 +369,5 @@ object Scalot {
   private case class SkipComp(ret: Int) extends Component {
     override lazy val length: Int = ret
   }
+
 }
