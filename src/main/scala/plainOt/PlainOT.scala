@@ -77,11 +77,11 @@ object PlainOT {
 
     /**
      * Combine the current Operation with it's direct successor operation nextOp
+     * such that:
+     * op2(op1(str)) == op1.compose(op2)(str)
      */
-    def compose(nextOp: Operation): Operation = {
+    def compose(nextOp: Operation): Operation = ???
 
-      this
-    }
 
     /** Computes the invert operation for input string str
       * such that:
