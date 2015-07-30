@@ -9,7 +9,6 @@ object PlainOT {
 
   /** Represents a sequence of operations valid for any string with length -> baseLength */
   case class Operation(ops: Seq[Component] = Seq[Component]()) {
-
     lazy val baseLength = ops.filterNot(_.isInstanceOf[InsComp]).map(_.length).sum
 
     lazy val targetLength: Int = ops.map(_.length).sum - ops.filter(_.isInstanceOf[DelComp]).map(_.length).sum
@@ -82,13 +81,18 @@ object PlainOT {
      */
     def compose(op: Operation): Operation = ???
 
-    /** Computes the invert operation fro input string str
+    /** Computes the invert operation for input string str
       * such that:
       * str == this.invert(str).apply(this.apply(str))
       * For implementing undo
       */
-    def invert(str: String): Operation = ???
+    def invert(str: String): Operation = Operation(ops.map {
+      case x: InsComp => DelComp(x.length)
+      case x: SkipComp => x
+      case x: DelComp => InsComp(str.substring(Operation(ops.takeWhile(_ != x).drop(1)).baseLength, x.length))
+    })
   }
+
 
   /** Companion of the Operation case class */
   object Operation {
@@ -236,4 +240,5 @@ object PlainOT {
   private case class SkipComp(ret: Int) extends Component {
     override lazy val length: Int = ret
   }
+
 }

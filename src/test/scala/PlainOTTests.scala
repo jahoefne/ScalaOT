@@ -5,6 +5,26 @@ import plainOt.PlainOT.TransformedPair
 
 class PlainOTTests extends FunSuite {
 
+  test("Inverting an Operation"){
+    val str = "Hello World"
+    info(s"Original String is '$str'")
+
+    val op1 = PlainOT.Operation().insert("Hallo Welt!").delete(11)
+    info(s"Original Op is ${op1.toString}")
+
+    val res = op1(str).get
+    info(s"\tResult String is '$res'")
+
+    val invertedOp = op1.invert(str)
+    info(s"Inverted Op is ${invertedOp.toString}")
+
+    val original = invertedOp(res).get
+    info(s"\tRestored Original String is '$original'")
+
+    assert(original == str)
+  }
+
+
   test("Chaining Components of the same type does not increase the total number of components "){
     val op1 = PlainOT.Operation()
       .insert("abc")
