@@ -40,9 +40,22 @@ object PlainOT {
       }
     }.mkString(" -> ")
 
+
     /**
-     * Helper for apply, does the actual applying in a recursive manner in O(n)
+     * Applies the operation to an input String
+     * It is important to notice that not every input String is valid for a given
+     * operation. There are two requirements for the input string
+     * 1. The baseLength of the operation must match the length of the input string
+     * 2. The characters of a delete component must match the characters in the input
+     * string at the given point
+     * @param str the string on which the input should be applied
+     * @return the result of the input transformation
      */
+    def apply(str: String): Option[String] = str.length == baseLength match {
+      case true => applyRec(str = str)
+      case _ => None
+    }
+
     @scala.annotation.tailrec
     private def applyRec(c: Int = 0, t: Seq[Component] = ops, str: String): Option[String] = t.headOption match {
 
@@ -60,27 +73,20 @@ object PlainOT {
       case _ => None
     }
 
-    /**
-     * Applies the operation to an input String
-     * It is important to notice that not every input String is valid for a given
-     * operation. There are two requirements for the input string
-     * 1. The baseLength of the operation must match the length of the input string
-     * 2. The characters of a delete component must match the characters in the input
-     * string at the given point
-     * @param str the string on which the input should be applied
-     * @return the result of the input transformation
-     */
-    def apply(str: String): Option[String] = str.length == baseLength match {
-      case true => applyRec(str = str)
-      case _ => None
-    }
 
     /**
      * Combine the current Operation with it's direct successor operation nextOp
      * such that:
      * op2(op1(str)) == op1.compose(op2)(str)
      */
-    def compose(nextOp: Operation): Operation = ???
+    def compose(nextOp: Operation): Option[Operation] = targetLength!=nextOp.baseLength match {
+      case true =>
+      case _ => None
+    }
+
+    private def composeRec() : Option[Operation] = {
+      composeRec()
+    }
 
 
     /** Computes the invert operation for input string str
@@ -106,6 +112,11 @@ object PlainOT {
       * The transform function yields an operation pair that makes the both strings
       * identical if A applies primeB and B applies primeA
       */
+    def transform(a: Operation, b: Operation): Option[TransformedPair] = b.baseLength != a.baseLength match {
+      case true => None
+      case false => Some(transformRec(a.ops, b.ops))
+    }
+
     private def transformRec(ops1: Seq[Component],
                              ops2: Seq[Component],
                              res: TransformedPair = TransformedPair()): TransformedPair = {
@@ -198,11 +209,6 @@ object PlainOT {
         case _ =>
       }
       res
-    }
-
-    def transform(a: Operation, b: Operation): Option[TransformedPair] = b.baseLength != a.baseLength match {
-      case true => None
-      case false => Some(transformRec(a.ops, b.ops))
     }
   }
 
