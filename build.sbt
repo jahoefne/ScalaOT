@@ -1,4 +1,4 @@
-name := "ScalaPlainOT"
+name := "Scalot"
 
 version := "1.0"
 
