@@ -221,14 +221,14 @@ object Scalot {
       */
     def transform(a: Operation, b: Operation): Option[TransformedPair] = b.baseLength != a.baseLength match {
       case true => None
-      case false => Some(transformRec(a.ops, b.ops))
+      case false => transformRec(a.ops, b.ops)
     }
 
     private def transformRec(ops1: Seq[Component],
                              ops2: Seq[Component],
-                             res: TransformedPair = TransformedPair()): TransformedPair = {
+                             res: TransformedPair = TransformedPair()): Option[TransformedPair] = {
       if (ops1.isEmpty && ops2.isEmpty)
-        return res
+        return Some(res)
 
       ops1.headOption match {
         case Some(op1: InsComp) =>
@@ -253,7 +253,7 @@ object Scalot {
       }
 
       if(ops1.isEmpty || ops2.isEmpty)
-        throw new Exception("A Ops is empty when it shouldn't be")
+        return None
 
 
       ops1.headOption match {
@@ -342,7 +342,8 @@ object Scalot {
           }
         case _ =>
       }
-      res
+      None
+      //res
     }
   }
 
