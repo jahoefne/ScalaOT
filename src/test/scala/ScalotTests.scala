@@ -2,8 +2,16 @@ import org.scalatest._
 import scalot.Scalot
 import scalot.Scalot.TransformedPair
 
+import scala.util.Random
+
 
 class ScalotTests extends FunSuite {
+
+  def randomString(length: Int) : String = Random.alphanumeric.take(length).mkString
+  def randomOpFor(str: String) : Scalot.Operation = {
+    for()
+    Scalot.Operation()
+  }
 
   test("Inverting an Operation"){
     val str = "Hello World"
@@ -23,7 +31,6 @@ class ScalotTests extends FunSuite {
 
     assert(original == str)
   }
-
 
   test("Compose Test"){
     info("Starting Compose Test…")

@@ -78,9 +78,11 @@ object Scalot {
      * such that:
      * op2(op1(str)) == op1.compose(op2)(str)
      */
-    def compose(nextOp: Operation): Option[Operation] = targetLength!=nextOp.baseLength match {
+    def compose(nextOp: Operation): Option[Operation] = targetLength==nextOp.baseLength match {
       case true => composeRec(ops2= nextOp.ops)
-      case _ => None
+      case _ =>
+        println("Trying to compose invalid operations!")
+        None
     }
 
     private def composeRec(ops1: Seq[Component] = this.ops,
@@ -99,64 +101,63 @@ object Scalot {
         case _ =>
       }
 
-      if(ops1.isEmpty || ops2.isEmpty){
-        return None
-      }
+      require(ops1.nonEmpty && ops2.nonEmpty, "An ops which shouldn't be empty is empty!")
 
       ops1.head match {
         case op1: SkipComp =>
           ops2.head match {
             case op2: SkipComp =>
               if(op1.length>op2.length){
-                return composeRec(
+                composeRec(
                   ops1.updated(0,SkipComp(op1.length-op2.length)),
                   ops2.drop(1),
                   res.skip(op2))
               }else if(op1.length==op2.length){
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.skip(op2))
               }else{
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.updated(0,SkipComp(op2.length-op1.length)),
                   res.skip(op1))
               }
             case op2: DelComp =>
               if(op1.length>op2.length){
-                return composeRec(
+                composeRec(
                   ops1.updated(0,DelComp(op1.length-op2.length)),
                   ops2.drop(1),
                   res.delete(op2))
               }else if(op1.length==op2.length){
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.delete(op2))
               }
               else {
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.updated(0,DelComp(op2.length-op1.length)),
                   res.delete(op1.length))
               }
+            case _ => throw new Exception("This should not happen!")
           }
         case op1: InsComp =>
           ops2.head match {
             case op2: DelComp => {
               if(op1.length>op2.length){
-                return composeRec(
+                composeRec(
                 ops1.updated(0, InsComp(op1.str.substring(op2.length))),
                 ops2.drop(1),
                 res)
               }else if (op1.length == op2.length){
-                return composeRec(
+                composeRec(
                 ops1.drop(1),
                 ops2.drop(1),
                 res)
               }else {
-                return composeRec(
+                composeRec(
                 ops1.drop(1),
                 ops2.updated(0, DelComp(op2.length-op1.length)),
                 res)
@@ -164,23 +165,24 @@ object Scalot {
             }
             case op2: SkipComp =>
               if(op1.length > op2.length){
-                return composeRec(
+                composeRec(
                   ops1.updated(0, InsComp(op1.str.substring(op2.length))),
                   ops2.drop(1),
                   res.insert(op1.str.substring(0, op2.length)))
               }else if(op1.length==op2.length){
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.drop(1),
                   res.insert(op1))
               }else{
-                return composeRec(
+                composeRec(
                   ops1.drop(1),
                   ops2.updated(0, SkipComp(op1.length-op2.length)),
                   res.insert(op1))
               }
+            case _ => throw new Exception("This should not happen!")
           }
-          throw new Exception("This should not happen!")
+        case _ => throw new Exception("This should not happen!")
       }
     }
 
