@@ -145,7 +145,7 @@ object Scalot {
           }
         case op1: InsComp =>
           ops2.head match {
-            case op2: DelComp => {
+            case op2: DelComp =>
               if(op1.length>op2.length){
                 composeRec(
                 ops1.updated(0, InsComp(op1.str.substring(op2.length))),
@@ -162,7 +162,6 @@ object Scalot {
                 ops2.updated(0, DelComp(op2.length-op1.length)),
                 res)
               }
-            }
             case op2: SkipComp =>
               if(op1.length > op2.length){
                 composeRec(
@@ -192,10 +191,20 @@ object Scalot {
       * str == this.invert(str).apply(this.apply(str))
       * For implementing undo
       */
-    def invert(str: String): Operation = Operation(ops.map {
-      case x: InsComp => DelComp(x.length)
-      case x: SkipComp => x
-      case x: DelComp => InsComp(str.substring(Operation(ops.takeWhile(_ != x).drop(1)).baseLength, x.length))
+    def invert(str: String): Operation = Operation(ops.zipWithIndex.map{
+      case (x: InsComp, idx: Int) =>
+        //println("Ins op count "+idx)
+        DelComp(x.length)
+      case (x: SkipComp, idx: Int) =>
+        //println("Skip op count "+idx)
+        x
+      case (x: DelComp, idx: Int) =>
+       // println("Del  op count "+idx)
+        val start  = Operation(ops.take(idx)).baseLength
+        //println("    Delete from "+start +"  to "+(start+x.length))
+        //println("    Inserting Substring: "+str.substring(start, x.length+start))
+        //println("    Index of substring: "+str.indexOf(str.substring(start, x.length+start)))
+        InsComp(str.substring(start, x.length+start))
     })
   }
 
@@ -266,7 +275,7 @@ object Scalot {
 
         case Some(op1: DelComp) =>
           ops2.headOption match {
-            case Some(op2: DelComp) => {
+            case Some(op2: DelComp) =>
               if (op1.length > op2.length) {
                 return transformRec(ops1.updated(0, DelComp(op1.length - op2.length)), ops2.drop(1), res)
               } else if (op1.length == op2.length) {
@@ -274,8 +283,7 @@ object Scalot {
               } else {
                 return transformRec(ops1.drop(1), ops2.updated(0, DelComp(op2.length - op1.length)), res)
               }
-            }
-            case Some(op2: SkipComp) => {
+            case Some(op2: SkipComp) =>
               if (op1.length > op2.length) {
                 return transformRec(
                   ops1.updated(0, DelComp(op1.length - op2.length)),
@@ -292,7 +300,6 @@ object Scalot {
                   ops2.updated(0, SkipComp(op2.length - op1.length)),
                   res.copy(prime1 = res.prime1.delete(op1.length)))
               }
-            }
             case _ =>
           }
         case _ =>
