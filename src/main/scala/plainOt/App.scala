@@ -1,6 +1,6 @@
-package plainOt
+package plainot
 
-import plainOt.PlainOT.TransformedPair
+import plainot.PlainOT.TransformedPair
 
 
 object App {

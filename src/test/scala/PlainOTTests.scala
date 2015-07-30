@@ -1,6 +1,6 @@
 import org.scalatest._
-import plainOt.PlainOT
-import plainOt.PlainOT.TransformedPair
+import plainot.PlainOT
+import plainot.PlainOT.TransformedPair
 
 
 class PlainOTTests extends FunSuite {

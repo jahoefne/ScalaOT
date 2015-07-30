@@ -1,4 +1,4 @@
-package plainOt
+package plainot
 
 /**
  * A simple Scala Implementation of Operational Transformation for Plain Text
