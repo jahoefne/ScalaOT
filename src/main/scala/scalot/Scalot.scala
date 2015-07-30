@@ -126,7 +126,7 @@ object Scalot {
             case op2: DelComp =>
               if(op1.length>op2.length){
                 composeRec(
-                  ops1.updated(0,DelComp(op1.length-op2.length)),
+                  ops1.updated(0,SkipComp(op1.length-op2.length)),
                   ops2.drop(1),
                   res.delete(op2))
               }else if(op1.length==op2.length){
@@ -177,7 +177,7 @@ object Scalot {
               }else{
                 composeRec(
                   ops1.drop(1),
-                  ops2.updated(0, SkipComp(op1.length-op2.length)),
+                  ops2.updated(0, SkipComp(op2.length-op1.length)),
                   res.insert(op1))
               }
             case _ => throw new Exception("This should not happen!")
