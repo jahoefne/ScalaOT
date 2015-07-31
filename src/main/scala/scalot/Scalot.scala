@@ -50,10 +50,12 @@ object Scalot {
      * @param str the string on which the input should be applied
      * @return the result of the input transformation
      */
-    def apply(str: String): Option[String] = str.length == baseLength match {
-      case true => applyRec(str = str)
-      case _ => None
-    }
+    def apply(str: String): Option[String] =
+      if (str.length == baseLength) {
+        applyRec(str = str)
+      } else {
+        None
+      }
 
     @scala.annotation.tailrec
     private def applyRec(c: Int = 0, t: Seq[Component] = ops, str: String): Option[String] = t.headOption match {
@@ -78,12 +80,13 @@ object Scalot {
      * such that:
      * op2(op1(str)) == op1.compose(op2)(str)
      */
-    def compose(nextOp: Operation): Option[Operation] = targetLength == nextOp.baseLength match {
-      case true => composeRec(ops2 = nextOp.ops)
-      case _ =>
+    def compose(nextOp: Operation): Option[Operation] =
+      if (targetLength == nextOp.baseLength) {
+        composeRec(ops2 = nextOp.ops)
+      } else {
         println("Trying to compose invalid operations!")
         None
-    }
+      }
 
     private def composeRec(ops1: Seq[Component] = this.ops,
                            ops2: Seq[Component],
@@ -219,10 +222,12 @@ object Scalot {
       * The transform function yields an operation pair that makes the both strings
       * identical if A applies primeB and B applies primeA
       */
-    def transform(a: Operation, b: Operation): Option[TransformedPair] = b.baseLength != a.baseLength match {
-      case true => None
-      case false => transformRec(a.ops, b.ops)
-    }
+    def transform(a: Operation, b: Operation): Option[TransformedPair] =
+      if (b.baseLength != a.baseLength) {
+        None
+      } else {
+        transformRec(a.ops, b.ops)
+      }
 
     private def transformRec(ops1: Seq[Component],
                              ops2: Seq[Component],
@@ -237,7 +242,7 @@ object Scalot {
             ops2 = ops2,
             res = res.copy(
               prime1 = res.prime1.insert(op1.str),
-              prime2 =res.prime2.skip(op1.length)))
+              prime2 = res.prime2.skip(op1.length)))
         case _ =>
       }
 
@@ -252,7 +257,7 @@ object Scalot {
         case _ =>
       }
 
-      if(ops1.isEmpty || ops2.isEmpty)
+      if (ops1.isEmpty || ops2.isEmpty)
         return None
 
 
@@ -280,7 +285,7 @@ object Scalot {
                   ops2.updated(0, SkipComp(op2.length - op1.length)),
                   res.copy(
                     prime1 = res.prime1.skip(op1),
-                    prime2 =res.prime2.skip(op1)))
+                    prime2 = res.prime2.skip(op1)))
               }
             case Some(op2: DelComp) =>
               if (op1.length > op2.length) {
