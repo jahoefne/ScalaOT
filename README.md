@@ -12,7 +12,7 @@ Assume two clients *client1* and *client2* edit the same document with the initi
 
 * *client2* replaces `'Hello'` with `'Goodbye'` yielding `'Goodbye World!'` and producing two operations `Delete(1-5)` and `Insert(0, 'Goodbye')`
 
-The combined edits of *client1* and *client2* should of course yield `Goodbye Cruel World!` however when simply passing the operations around the results might differ.
+The combined edits of *client1* and *client2* should of course yield `'Goodbye Cruel World!'` however when simply passing the operations around the results might differ.
 Assume the server receives the operations in the following order:
 1. `Delete(1-5)`
 2. `Insert(6,'Cruel ')`
