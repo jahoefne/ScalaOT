@@ -14,6 +14,12 @@ licenses += ("BSD-style", url("http://www.opensource.org/licenses/bsd-license.ph
 
 homepage := Some(url("http://github.com/jahoefne"))
 
+scmInfo := Some(ScmInfo(
+  url("https://github.com/jahoefne/scalot"),
+  "scm:git:git@github.com:jahoefne/scalot.git",
+  Some("scm:git:git@github.com:jahoefne/scalot.git")))
+
+
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
 )
@@ -30,15 +36,14 @@ publishTo := {
     Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-pomExtra := (
-    <scm>
-      <url>git@github.com:jahoefne/Scalot.git</url>
-      <connection>scm:git:git@github.com:jahoefne/Scalot.git</connection>
-    </scm>
+pomExtra :=
     <developers>
       <developer>
         <id>jahoefne</id>
         <name>Jan Hoefner</name>
         <url>http://github.com/jahoefne</url>
       </developer>
-    </developers>)
+    </developers>
+
+
+pomIncludeRepository := { _ => false }
