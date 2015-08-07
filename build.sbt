@@ -6,7 +6,7 @@ normalizedName := "scalot"
 
 version := "1.0"
 
-organization := "com.jahoefne"
+organization := "com.github.jahoefne"
 
 scalaVersion := "2.11.7"
 
