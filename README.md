@@ -53,4 +53,14 @@ server.receiveOperation(message) match {
 }
 ```
 
+Edits are represented as `Operations`, a operation consists of a sequence of components.
+Components are alternation instructions for a certain part of a string.
+A Operation can be applied to a given string if the operation contains a component for each part of the text.
+
+**Scalot** defines three different operations *skip(count)*, *delete(count)*, *insert(string)*. Components can be cascaded in the following manner.
+```scala
+val operation = new Operation().skip(5).insert("Hello").skip(5).delete(2) // …
+```
+the above Operation has a baseLength of 12 and is therefore applicaple to any string with exactly 12 character.
+
 Inspired by https://github.com/Operational-Transformation/ot.js
