@@ -15,9 +15,9 @@ licenses += ("BSD-style", url("http://www.opensource.org/licenses/bsd-license.ph
 homepage := Some(url("http://github.com/jahoefne"))
 
 scmInfo := Some(ScmInfo(
-  url("https://github.com/jahoefne/scalot"),
-  "scm:git:git@github.com:jahoefne/scalot.git",
-  Some("scm:git:git@github.com:jahoefne/scalot.git")))
+  url("https://github.com/jahoefne/Scalot"),
+  "scm:git:git@github.com:jahoefne/Scalot.git",
+  Some("scm:git:git@github.com:jahoefne/Scalot.git")))
 
 
 libraryDependencies ++= Seq(
