@@ -11,10 +11,7 @@ case class Client(var str: String = "", var revision: Int = 0) {
   def applyLocal(op: Operation): Option[Operation] = {
     println("ApplyLocal")
     revision = revision + 1
-   // println("OP \t"+op.id)
     val opRev = op.copy(revision = revision)
-  //  println("OP Rev "+opRev.id)
-
     require(opRev(str).isDefined, s"The given operation can't be applied! OpLength ${opRev.baseLength} String Length ${str.length}")
     str = opRev(str).get
     handleFMS(state.applyLocal(opRev),opRev)
@@ -22,15 +19,12 @@ case class Client(var str: String = "", var revision: Int = 0) {
 
   private def handleFMS(res: Action, op: Operation): Option[Operation] = res match {
     case NoOp(newState) =>
-      println(s"shift to ${newState}!")
       state = newState
       None
     case Send(sendOp, newState) =>
-      println("Client: Send to Server!")
       state = newState
       Some(sendOp)
     case Apply(applyOp: Operation, newState) =>
-      println(s"Client: Apply an Operation! ${applyOp.toString} on string '${str}'")
       state = newState
       val applied = applyOp(str)
       require(applied.isDefined, s"Not defined! Tried to ${applyOp.baseLength} on ${this.str.length} new state should be: ${newState}")
@@ -40,7 +34,6 @@ case class Client(var str: String = "", var revision: Int = 0) {
   }
 
   def applyRemote(op: Operation): Option[Operation] = {
-    println("Apply Remote "+op)
     handleFMS(state.applyRemote(op),op)
   }
 }
@@ -68,12 +61,10 @@ object ClientFSM {
    * server.
    */
   case class Synchronized(revision: Int) extends State {
-    println("Synchronized!")
     /**
      * If the users triggers an operation -> Send it to the server and wait for the confirmation
      */
     def applyLocal(op: Operation): Action = {
-      println("\tSynchronized, applyLocal")
       Send(op, AwaitConfirm(op))
     }
 
@@ -81,7 +72,6 @@ object ClientFSM {
      * If we get an operation from the server in synced state we can directly apply it without a transformation
      */
     def applyRemote(op: Operation): Action = {
-      println("\tSynchronized, applyLocal")
       Apply(op, Synchronized(op.revision))
     }
   }
@@ -91,14 +81,12 @@ object ClientFSM {
    * operations.
    */
   case class AwaitConfirm(outstanding: Operation) extends State {
-    println("AwaitConfirm!")
 
     /**
      * The user triggered a new operation while we still wait for a confirmation from the server!
      * Buffer the operation the user triggers until we get the confirmation from the server
      */
     def applyLocal(op: Operation): Action = {
-      println("\tAwaitConfirm, applyLocal")
       NoOp(AwaitWithBuffer(outstanding, op))
     }
 
@@ -109,12 +97,7 @@ object ClientFSM {
      * Or the incomming operation is a operation from another client!
      */
     def applyRemote(op: Operation): Action = {
-      println("\tAwaitConfirm, applyRemote")
-      // println(op.id)
-   //   println(outstanding.id)
       if (op.id == outstanding.id) {
-         println("\tId equals!")
-
         /** It's out confirmation!
           * We can change back to the synchronized state
           */
@@ -138,21 +121,17 @@ object ClientFSM {
    * operations.
    */
   case class AwaitWithBuffer(outstanding: Operation, buffer: Operation) extends State {
-    println("AwaitWithBuffer!")
-
     /**
      * The User triggered an operation again and we still didn't get a confirmation from the server.
      * => Combine Operation into buffer and wait for outstanding confirmation
      */
     def applyLocal(op: Operation): Action = {
-      println("\tAwaitWithBuffer, applyLocal")
       val composition = buffer.compose(op)
       require(composition.isDefined, "The two operations must follow each other directly but are not composeable! This is not possible!")
       NoOp(AwaitWithBuffer(outstanding, composition.get))
     }
 
     def applyRemote(op: Operation): Action = {
-      println("\tAwaitWithBuffer, applyRemote")
       if (op.id == outstanding.id) {
         Send(buffer, AwaitConfirm(buffer))
       } else {

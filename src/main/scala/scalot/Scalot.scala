@@ -87,7 +87,7 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
     if (targetLength == nextOp.baseLength) {
       composeRec(ops2 = nextOp.ops)
     } else {
-      println("Trying to compose invalid operations!")
+      //println("Trying to compose invalid operations!")
       None
     }
 
@@ -199,17 +199,11 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
     */
   def invert(str: String): Operation = Operation(ops.zipWithIndex.map {
     case (x: InsComp, idx: Int) =>
-      //println("Ins op count "+idx)
       DelComp(x.length)
     case (x: SkipComp, idx: Int) =>
-      //println("Skip op count "+idx)
       x
     case (x: DelComp, idx: Int) =>
-      // println("Del  op count "+idx)
       val start = Operation(ops.take(idx)).baseLength
-      //println("    Delete from "+start +"  to "+(start+x.length))
-      //println("    Inserting Substring: "+str.substring(start, x.length+start))
-      //println("    Index of substring: "+str.indexOf(str.substring(start, x.length+start)))
       InsComp(str.substring(start, x.length + start))
   })
 }
