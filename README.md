@@ -1,7 +1,28 @@
 # Scalot
 
 **Scalot** provides easy Operational Transformations to enable collaborative text editing.
-It works on both ScalaJS and the JVM and it is very easy to use
+It works on both ScalaJS and the JVM and it is very easy to use.
+
+The goal of OT is to transfrom editing operations of users working on a shared document in a way that preserves editing intentions and automatically resolves conflicts.
+
+##Operational Transformation
+Assume two clients *client1* and *client2* edit the same document with the initial string `'Hello World!'` and the following operations happen concurrently.
+
+* *client1* inserts `'Cruel '` after character 6 yielding `'Hello Cruel World!'` and producing operation `Insert(6,'Cruel ')`
+
+* *client2* replaces `'Hello'` with `'Goodbye'` yielding `'Goodbye World!'` and producing two operations `Delete(1-5)` and `Insert(0, 'Goodbye')`
+
+The combined edits of *client1* and *client2* should of course yield `Goodbye Cruel World!` however when simply passing the operations around the results might differ.
+Assume the server receives the operations in the following order:
+1. `Delete(1-5)`
+2. `Insert(6,'Cruel ')`
+3. `Insert(0, 'Goodbye')`
+
+*The resulting string would be `'Goodbye WorldCruel !'`.*
+Operational Transformation takes care of *transforming* the operations of any number of clients. So that the resulting string will always be the expeceted one.
+
+##Usage Example
+The usage of Scalot is very simple:
 
 ####Client side
 ```scala
