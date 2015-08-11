@@ -9,8 +9,8 @@ import java.util.UUID
  * @param operations the history of operation that was performed on the document
  */
 case class Server(var str: String,
-                          val uuid: String = UUID.randomUUID().toString,
-                          var operations: List[Operation] = List[Operation]()) {
+                  val uuid: String = UUID.randomUUID().toString,
+                  var operations: List[Operation] = List[Operation]()) {
 
   def receiveOperation(op: Operation): Option[Operation] = {
     op.revision > 0 match {

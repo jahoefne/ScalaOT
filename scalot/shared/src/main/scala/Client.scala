@@ -121,11 +121,11 @@ object ClientFSM {
    * operations.
    */
   case class AwaitWithBuffer(outstanding: Operation, buffer: Operation) extends State {
-    /**
-     * The User triggered an operation again and we still didn't get a confirmation from the server.
-     * => Combine Operation into buffer and wait for outstanding confirmation
-     */
     def applyLocal(op: Operation): Action = {
+      /**
+       * The User triggered an operation again and we still didn't get a confirmation from the server.
+       * => Combine Operation into buffer and wait for outstanding confirmation
+       */
       val composition = buffer.compose(op)
       require(composition.isDefined, "The two operations must follow each other directly but are not composeable! This is not possible!")
       NoOp(AwaitWithBuffer(outstanding, composition.get))

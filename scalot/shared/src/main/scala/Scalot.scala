@@ -1,6 +1,5 @@
 package scalot
 
-
 import scala.util.Random
 
 /**
