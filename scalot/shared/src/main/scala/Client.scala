@@ -5,6 +5,8 @@ import java.util.UUID
 import scala.util.Random
 
 
+case class ApplyResult(send:Option[Operation], apply: Option[Operation])
+
 case class Client(var str: String = "",
                   var revision: Int = 0,
                   var title: String = "",
@@ -15,7 +17,7 @@ case class Client(var str: String = "",
   private var state: State = Synchronized(revision)
 
   /** If this returns an operation send it to the server */
-  def applyLocal(op: Operation): Option[Operation] = {
+  def applyLocal(op: Operation): ApplyResult = {
     println("ApplyLocal")
     revision = revision + 1
     val opRev = op.copy(revision = revision)
@@ -24,23 +26,25 @@ case class Client(var str: String = "",
     handleFMS(state.applyLocal(opRev),opRev)
   }
 
-  private def handleFMS(res: Action, op: Operation): Option[Operation] = res match {
+  private def handleFMS(res: Action, op: Operation): ApplyResult = res match {
     case NoOp(newState) =>
       state = newState
-      None
+      ApplyResult(None, None)
+      
     case Send(sendOp, newState) =>
       state = newState
-      Some(sendOp)
+      ApplyResult(Some(sendOp), None)
+      
     case Apply(applyOp: Operation, newState) =>
       state = newState
       val applied = applyOp.applyTo(str)
       require(applied.isDefined, s"Not defined! Tried to ${applyOp.baseLength} on ${this.str.length} new state should be: ${newState}")
       str = applied.get
       revision = op.revision
-      None
+      ApplyResult(None, Some(applyOp))
   }
 
-  def applyRemote(op: Operation): Option[Operation] = {
+  def applyRemote(op: Operation): ApplyResult = {
     handleFMS(state.applyRemote(op),op)
   }
 }
