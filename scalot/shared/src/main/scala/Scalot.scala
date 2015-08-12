@@ -52,7 +52,7 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
    * @param str the string on which the input should be applied
    * @return the result of the input transformation
    */
-  def apply(str: String): Option[String] =
+  def applyTo(str: String): Option[String] =
     if (str.length == baseLength) {
       applyRec(str = str)
     } else {
@@ -362,7 +362,7 @@ sealed trait Component {
  * Component for inserting plain text at the current position
  * @param str the string to insert
  */
-private case class InsComp(str: String) extends Component {
+case class InsComp(str: String) extends Component {
   override lazy val length: Int = str.length
 }
 
@@ -370,13 +370,13 @@ private case class InsComp(str: String) extends Component {
  * Component for deleting plain text at the current position
  * @param count the string to delete
  */
-private case class DelComp(count: Int) extends Component {
+case class DelComp(count: Int) extends Component {
   override lazy val length: Int = count
 }
 
 /** Component for moving the cursor to the right
   * @param ret the number of chars the cursor should move
   */
-private case class SkipComp(ret: Int) extends Component {
+case class SkipComp(ret: Int) extends Component {
   override lazy val length: Int = ret
 }

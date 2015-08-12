@@ -19,8 +19,8 @@ case class Client(var str: String = "",
     println("ApplyLocal")
     revision = revision + 1
     val opRev = op.copy(revision = revision)
-    require(opRev(str).isDefined, s"The given operation can't be applied! OpLength ${opRev.baseLength} String Length ${str.length}")
-    str = opRev(str).get
+    require(opRev.applyTo(str).isDefined, s"The given operation can't be applied! OpLength ${opRev.baseLength} String Length ${str.length}")
+    str = opRev.applyTo(str).get
     handleFMS(state.applyLocal(opRev),opRev)
   }
 
@@ -33,7 +33,7 @@ case class Client(var str: String = "",
       Some(sendOp)
     case Apply(applyOp: Operation, newState) =>
       state = newState
-      val applied = applyOp(str)
+      val applied = applyOp.applyTo(str)
       require(applied.isDefined, s"Not defined! Tried to ${applyOp.baseLength} on ${this.str.length} new state should be: ${newState}")
       str = applied.get
       revision = op.revision

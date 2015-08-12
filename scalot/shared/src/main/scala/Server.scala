@@ -24,11 +24,11 @@ case class Server(var str: String,
           val resolved = droped.foldRight(op)((curr, res) =>  {
             Operation.transform(res, curr).get.prime1
           })
-          str = resolved(str).get // apply operation to our text
+          str = resolved.applyTo(str).get // apply operation to our text
           operations = resolved :: operations  // store operation in history
           Some(resolved)
         } else {
-          str = op(str).get // apply operation to out text
+          str = op.applyTo(str).get // apply operation to out text
           operations = op :: operations  // store operation in history
           Some(op)
         }

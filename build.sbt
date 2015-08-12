@@ -5,10 +5,8 @@ lazy val scalot = crossProject
   .settings(
     name := "scalot",
     organization := "com.github.jahoefne",
-    version := "0.3.1",
+    version := "0.3.2",
     scalaVersion := "2.11.7",
-
-     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.3.1",
 
     unmanagedSourceDirectories in Compile += {
       val v = if (scalaVersion.value startsWith "2.10.") "scala-2.10" else "scala-2.11"
@@ -46,7 +44,11 @@ lazy val scalot = crossProject
         </developers>
   )
   .jsSettings()
-  .jvmSettings()
+  .jvmSettings(
+    libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "upickle" % "0.3.4",
+      "com.lihaoyi" %% "utest" % "0.3.1")
+  )
 
 lazy val scalotJVM = scalot.jvm
 lazy val scalotJS = scalot.js
