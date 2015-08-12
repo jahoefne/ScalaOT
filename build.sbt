@@ -5,10 +5,10 @@ lazy val scalot = crossProject
   .settings(
     name := "scalot",
     organization := "com.github.jahoefne",
-    version := "0.3",
+    version := "0.3.1",
     scalaVersion := "2.11.7",
 
-    /* libraryDependencies += "org.scalatest" %%% "scalatest" % "2.2.4" % "test",*/
+     libraryDependencies += "com.lihaoyi" %%% "utest" % "0.3.1",
 
     unmanagedSourceDirectories in Compile += {
       val v = if (scalaVersion.value startsWith "2.10.") "scala-2.10" else "scala-2.11"
