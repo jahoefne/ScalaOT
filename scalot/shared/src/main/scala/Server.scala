@@ -2,6 +2,8 @@ package scalot
 
 import java.util.UUID
 
+import scala.util.Random
+
 /**
  * Represents a server document instance, must be created once per document
  * @param str the initial content of the document
@@ -9,8 +11,9 @@ import java.util.UUID
  * @param operations the history of operation that was performed on the document
  */
 case class Server(var str: String,
-                  val uuid: String = UUID.randomUUID().toString,
-                  var operations: List[Operation] = List[Operation]()) {
+                  var operations: List[Operation] = List[Operation](),
+                  var title: String = "",
+                  id: String = Random.alphanumeric.take(20).mkString) {
 
   def receiveOperation(op: Operation): Option[Operation] = {
     op.revision > 0 match {

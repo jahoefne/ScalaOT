@@ -1,7 +1,14 @@
 package scalot
 
+import java.util.UUID
 
-case class Client(var str: String = "", var revision: Int = 0) {
+import scala.util.Random
+
+
+case class Client(var str: String = "",
+                  var revision: Int = 0,
+                  var title: String = "",
+                  id: String = Random.alphanumeric.take(20).mkString) {
 
   import ClientFSM._
 
