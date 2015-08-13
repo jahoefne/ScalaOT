@@ -1,4 +1,5 @@
-import scalot._
+package scalot
+
 import utest._
 import utest.ExecutionContext.RunNow
 import upickle.default._
@@ -125,43 +126,6 @@ object ScalotTest{
       })
     }
 
-    /*
-      val server = Server("")
-      val client = Client("", 0)
-      val client2 = Client("", 0)
-      val op = Operation().insert("Hello World!")
-      val op2 = Operation().skip(6).insert("Cruel ").skip(6)
-      def handleServer(op: Option[Operation]): Unit = {
-        op match {
-          case Some(x) =>
-            println(s"Sending ${x.id} to server!")
-            server.receiveOperation(x) match {
-              case Some(resp) =>
-                println(s"\t Server Responded! ${resp.id}, sent ${x.id} $resp")
-                val res1 = client.applyRemote(resp)
-                val res2 = client2.applyRemote(resp)
-                handleServer(res1)
-                handleServer(res2)
-              case _ =>
-            }
-          case _ =>
-            println("Nothing to send to server!")
-        }
-      }
-      val res = client.applyLocal(op)
-      val res2 = client.applyLocal(op2)
-      val op3 = Operation().insert("Foo")
-      val res3 = client2.applyLocal(op3)
-      println(res3)
-      handleServer(res)
-      handleServer(res3)
-      handleServer(res2)
-      println(s"Server ${server.str}")
-      println(s"Client ${client.str}")
-      println(s"Client2 ${client2.str}")
-      */
-
-
     /** Some successive components are combinable */
     'ChainingComponents {
       val op1 = Operation()
@@ -190,25 +154,13 @@ object ScalotTest{
 
       val res1 = op1.applyTo(start)
       val res2 = op2.applyTo(start)
-
-      /*info(s"Start String '$start")
-      info(s"Operation1 -> ${op1.toString}")
-      info(s"\tgives -> $res1")
-      info(s"Operation2 -> ${op1.toString}")
-      info(s"\tgives -> $res2")*/
-
       val TransformedPair(prime1, prime2) = Operation.transform(op1, op2).get
 
       val resolved1 = prime1.applyTo(res2.get)
       assert(resolved1.isDefined)
-      /* info(s"Reolver 1 -> ${prime1.toString}")
-       info(s"\tResolves -> $resolved1")*/
 
       val resolved2 = prime2.applyTo(res1.get)
       assert(resolved2.isDefined)
-      /*info(s"Reolver 2 -> ${prime2.toString}")
-      info(s"\tResolves -> $resolved2")*/
-
       assert(resolved1 == resolved2)
     }
 
@@ -227,6 +179,5 @@ object ScalotTest{
 
   def main(args: Array[String]) {
     val results = test.run()
-  //  println("ALL TESTS COMPLETED SUCCESSFULLY!")
   }
 }
