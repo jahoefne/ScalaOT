@@ -18,6 +18,7 @@ case class Server(var str: String,
   def receiveOperation(op: Operation): Option[Operation] = {
     op.revision > 0 match {
       case true =>
+        println(s"OpRev: ${op.revision}")
         val droped = operations.drop(op.revision-1) // take all operations that happened concurrently
         if (droped.nonEmpty) {
           // and resolve all conflicts recursively
@@ -33,6 +34,7 @@ case class Server(var str: String,
           Some(op)
         }
       case _ =>
+        println(s"OpRev: ${op.revision}")
         None
     }
   }

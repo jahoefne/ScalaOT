@@ -14,17 +14,18 @@ case class Client(var str: String = "",
 
   import ClientFSM._
 
-  private var state: State = Synchronized(revision)
+  var state: State = Synchronized(revision)
 
   /** If this returns an operation send it to the server */
   def applyLocal(op: Operation): ApplyResult = {
-    println("ApplyLocal")
     revision = revision + 1
     val opRev = op.copy(revision = revision)
     require(opRev.applyTo(str).isDefined, s"The given operation can't be applied! OpLength ${opRev.baseLength} String Length ${str.length}")
     str = opRev.applyTo(str).get
     handleFMS(state.applyLocal(opRev),opRev)
   }
+
+  def getState(): State = state
 
   private def handleFMS(res: Action, op: Operation): ApplyResult = res match {
     case NoOp(newState) =>
@@ -33,6 +34,7 @@ case class Client(var str: String = "",
       
     case Send(sendOp, newState) =>
       state = newState
+      revision = sendOp.revision
       ApplyResult(Some(sendOp), None)
       
     case Apply(applyOp: Operation, newState) =>
@@ -109,7 +111,7 @@ object ClientFSM {
      */
     def applyRemote(op: Operation): Action = {
       if (op.id == outstanding.id) {
-        /** It's out confirmation!
+        /** It's our confirmation!
           * We can change back to the synchronized state
           */
         NoOp(Synchronized(op.revision))
@@ -128,8 +130,8 @@ object ClientFSM {
   }
 
   /**
-   * We've sent an operation to the server and didn't get a confirmation yet. The user did not yet trigger any other
-   * operations.
+   * We've sent an operation to the server and didn't get a confirmation yet. But the user already triggered other
+   * operations, we must buffer those operations until we get our confirmation.
    */
   case class AwaitWithBuffer(outstanding: Operation, buffer: Operation) extends State {
     def applyLocal(op: Operation): Action = {
@@ -144,7 +146,8 @@ object ClientFSM {
 
     def applyRemote(op: Operation): Action = {
       if (op.id == outstanding.id) {
-        Send(buffer, AwaitConfirm(buffer))
+        val newBuf = buffer.copy(revision = op.revision+1)
+        Send(newBuf, AwaitConfirm(newBuf))
       } else {
         val pair = Operation.transform(outstanding, op)
         require(pair.isDefined, "The first transformation result is None!")
