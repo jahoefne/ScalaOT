@@ -1,7 +1,5 @@
 package scalot
 
-import java.util.UUID
-
 import scala.util.Random
 
 /**
@@ -18,13 +16,12 @@ case class Server(var str: String,
   def receiveOperation(op: Operation): Option[Operation] = {
     op.revision > 0 match {
       case true =>
-        println(s"OpRev: ${op.revision}")
         val droped = operations.drop(op.revision-1) // take all operations that happened concurrently
         if (droped.nonEmpty) {
           // and resolve all conflicts recursively
           val resolved = droped.foldRight(op)((curr, res) =>  {
             Operation.transform(res, curr).get.prime1
-          })
+          }).copy(revision = operations.length+1,id = op.id)
           str = resolved.applyTo(str).get // apply operation to our text
           operations = resolved :: operations  // store operation in history
           Some(resolved)
@@ -33,9 +30,7 @@ case class Server(var str: String,
           operations = op :: operations  // store operation in history
           Some(op)
         }
-      case _ =>
-        println(s"OpRev: ${op.revision}")
-        None
+      case _ => None
     }
   }
 }
