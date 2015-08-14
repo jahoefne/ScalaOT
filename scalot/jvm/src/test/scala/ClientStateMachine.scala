@@ -289,6 +289,33 @@ object ClientStateMachine {
       assert(client1.str == client2.str, server.str == client2.str)
     }
 
+    "Double Conflict Test 2" - {
+      val server = Server("")
+      val client1 = Client("", 0)
+      val client2 = Client("", 0)
+
+      val op1 = Operation().insert("World!")
+      val op2 = Operation().insert("Hello ")
+      val op3 = Operation().skip(6).insert("Foo")
+
+      val send1 = client1.applyLocal(op1)
+      val send2 = client2.applyLocal(op2)
+
+      val response1 = server.receiveOperation(send1.send.get)
+      val response2 = server.receiveOperation(send1.send.get)
+
+      val send3 = client1.applyRemote(response1.get)
+      val send5 = client1.applyRemote(response2.get)
+
+      val send4 = client2.applyRemote(response1.get)
+      val send6 = client2.applyRemote(response2.get)
+      assert(send5.send.isEmpty,send6.send.isEmpty)
+      assert(send3.send.isEmpty,send4.send.isEmpty)
+
+      println(s"Client1: ${client1.str}")
+      println(s"Client2: ${client2.str}")
+      println(s"Client3: ${server.str}")
+    }
   }
 
   def main(args: Array[String]) {

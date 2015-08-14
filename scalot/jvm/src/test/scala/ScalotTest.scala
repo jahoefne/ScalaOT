@@ -174,9 +174,25 @@ object ScalotTest{
          e.printStackTrace()
      }
     }
+
+    'Transform2{
+      try {
+        val op1 = Operation().skip(0).insert("v").skip(1)
+        val op2 = Operation().skip(1).insert("v").skip(0)
+        assert(op1.baseLength == op2.baseLength)
+        val res = Operation.transform(op1,op2)
+        assert(res.isDefined)
+        println(res.get.prime1)
+        println(res.get.prime2)
+      }
+      catch {
+        case e: Exception =>
+          e.printStackTrace()
+      }
+    }
   }
 
   def main(args: Array[String]) {
-    val results = test.run()
+    println(new DefaultFormatter(trace = true).format(test.run()))
   }
 }

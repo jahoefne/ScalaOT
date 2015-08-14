@@ -20,7 +20,11 @@ case class Server(var str: String,
         if (droped.nonEmpty) {
           val resolved = droped.foldRight(op)((curr, res) =>  {
             val result = Operation.transform(res, curr)
-            require(result.isDefined)
+            require(result.isDefined,
+              s"Could not transform operations: " +
+                s"\n\t'$curr' (Base:${curr.baseLength} Tgt:${curr.targetLength} ${curr.revision}})  " +
+                s"\n\t$res (Base:${res.baseLength}, Tgt:${res.targetLength} rev: ${res.revision}})" +
+                s"\n droppped is $droped and op is $op (rev: ${op.revision})")
             result.get.prime1 }
           ).copy(revision = operations.length+1,id = op.id)
           str = resolved.applyTo(str).get // apply operation to our text

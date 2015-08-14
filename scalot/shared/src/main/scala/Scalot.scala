@@ -15,10 +15,14 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
 
   lazy val targetLength: Int = ops.map(_.length).sum - ops.filter(_.isInstanceOf[DelComp]).map(_.length).sum
 
-  def skip(count: Int): Operation = copy(ops = ops.lastOption match {
-    case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length + count))
-    case _ => ops :+ SkipComp(count)
-  })
+  def skip(count: Int): Operation = count match {
+    case x if x > 0 =>
+      copy(ops = ops.lastOption match {
+        case Some(x: SkipComp) => ops.updated(ops.length - 1, SkipComp(x.length + count))
+        case _ => ops :+ SkipComp(count)
+      })
+    case _ => this
+  }
 
   def skip(comp: SkipComp): Operation = skip(comp.length)
 
@@ -29,16 +33,25 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
 
   def insert(comp: InsComp): Operation = insert(comp.str)
 
-  def delete(count: Int): Operation = copy(ops = ops.lastOption match {
-    case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length + count))
-    case _ => ops :+ DelComp(count)
-  })
+  def delete(count: Int): Operation = count match {
+    case x if x > 0 =>
+      copy(ops = ops.lastOption match {
+        case Some(x: DelComp) => ops.updated(ops.length - 1, DelComp(x.length + count))
+        case _ => ops :+ DelComp(count)
+      })
+    case _ => this
+  }
 
   def delete(comp: DelComp): Operation = delete(comp.length)
 
   override def toString: String = {
     for (op <- ops) yield {
-      s" [${op.getClass.getSimpleName} ${op.length} ${op match {case x: InsComp => s"'${x.str}'" case _ => }}]"
+      s" [${op.getClass.getSimpleName} ${op.length} ${
+        op match {
+          case x: InsComp => s"'${x.str}'"
+          case _ =>
+        }
+      }]"
     }
   }.mkString(" -> ")
 
