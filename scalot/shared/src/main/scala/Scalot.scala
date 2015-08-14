@@ -38,7 +38,7 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
 
   override def toString: String = {
     for (op <- ops) yield {
-      s" [${op.getClass.getSimpleName} ${op.length}]"
+      s" [${op.getClass.getSimpleName} ${op.length} ${op match {case x: InsComp => s"'${x.str}'" case _ => }}]"
     }
   }.mkString(" -> ")
 
