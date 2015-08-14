@@ -171,7 +171,6 @@ object ClientStateMachine {
     }
 
 
-
     /** A bit more complex collision case
       * Client1 and Client2 edit the document at the same time, Client1's operation is received by the server
       * before client2's operation and client2 is awaiting with buffer already
@@ -233,12 +232,67 @@ object ClientStateMachine {
       assertMatch(client2.getState()) { case _: Synchronized => }
       println(client1.str)
       assert(client1.str == client2.str, client1.str == server.str)
-      assert(client1.revision==3, client2.revision==3, server.operations.length==3)
+      assert(client1.revision == 3, client2.revision == 3, server.operations.length == 3)
     }
+
+
+    "Double Conflict Test" - {
+      val server = Server("")
+      val client1 = Client("", 0)
+      val client2 = Client("", 0)
+
+      val op1 = Operation().insert("World!")
+      val op2 = Operation().insert("Hello ")
+      val op3 = Operation().skip(6).insert("Foo ")
+      val op4 = Operation().skip(6).insert("Bar ")
+
+      val send1 = client1.applyLocal(op1)
+      val send2 = client2.applyLocal(op2)
+      assert(client1.getState().isInstanceOf[AwaitConfirm], send1.send.isDefined, send1.apply.isEmpty,
+        client2.getState().isInstanceOf[AwaitConfirm], send2.send.isDefined, send2.apply.isEmpty)
+
+      val send3 = client1.applyLocal(op3)
+      val send4 = client2.applyLocal(op4)
+      assert(client1.getState().isInstanceOf[AwaitWithBuffer], send3.send.isEmpty, send3.apply.isEmpty,
+        client2.getState().isInstanceOf[AwaitWithBuffer], send4.send.isEmpty, send4.apply.isEmpty)
+
+      val response1 = server.receiveOperation(send1.send.get)
+      val response2 = server.receiveOperation(send2.send.get)
+      assert(response1.isDefined,response2.isDefined)
+
+      val send5 = client1.applyRemote(response1.get)
+      assert(send5.send.isDefined, send5.apply.isEmpty)
+
+      val send6 = client2.applyRemote(response1.get)
+      assert(send6.send.isEmpty, send6.apply.isDefined)
+
+      val send7 = client1.applyRemote(response2.get)
+      assert(send7.send.isEmpty, send7.apply.isDefined)
+
+      val send8 = client2.applyRemote(response2.get)
+      assert(send8.send.isDefined, send8.apply.isEmpty)
+
+      /** Send send5 and send8 */
+
+      val response3 = server.receiveOperation(send5.send.get)
+      assert(response3.isDefined)
+      val response4 = server.receiveOperation(send8.send.get)
+      assert(response4.isDefined)
+
+      /** Let's apply the responses this should remove all conflicts now! */
+      val send9 = client1.applyRemote(response3.get)
+      val send10 = client2.applyRemote(response3.get)
+      val send11 = client1.applyRemote(response4.get)
+      val send12 = client2.applyRemote(response4.get)
+      assert(send9.send.isEmpty, send10.send.isEmpty, send11.send.isEmpty, send12.send.isEmpty)
+
+      assert(client1.str == client2.str, server.str == client2.str)
+    }
+
   }
 
   def main(args: Array[String]) {
-    println(new DefaultFormatter().format(test.run()))
+    println(new DefaultFormatter(trace = true).format(test.run()))
   }
 }
 

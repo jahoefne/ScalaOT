@@ -1,5 +1,4 @@
-package scalot
-
+import scalot._
 import utest._
 import utest.ExecutionContext.RunNow
 import upickle.default._
