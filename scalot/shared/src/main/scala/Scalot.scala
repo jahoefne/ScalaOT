@@ -86,7 +86,6 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
     if (targetLength == nextOp.baseLength) {
       composeRec(ops2 = nextOp.ops)
     } else {
-      //println("Trying to compose invalid operations!")
       None
     }
 

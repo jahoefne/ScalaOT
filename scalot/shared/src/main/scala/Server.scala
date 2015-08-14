@@ -16,12 +16,13 @@ case class Server(var str: String,
   def receiveOperation(op: Operation): Option[Operation] = {
     op.revision > 0 match {
       case true =>
-        val droped = operations.drop(op.revision-1) // take all operations that happened concurrently
+        val droped = operations.dropRight(op.revision-1) // take all operations that happened concurrently
         if (droped.nonEmpty) {
-          // and resolve all conflicts recursively
           val resolved = droped.foldRight(op)((curr, res) =>  {
-            Operation.transform(res, curr).get.prime1
-          }).copy(revision = operations.length+1,id = op.id)
+            val result = Operation.transform(res, curr)
+            require(result.isDefined)
+            result.get.prime1 }
+          ).copy(revision = operations.length+1,id = op.id)
           str = resolved.applyTo(str).get // apply operation to our text
           operations = resolved :: operations  // store operation in history
           Some(resolved)

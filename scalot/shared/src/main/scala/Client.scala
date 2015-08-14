@@ -116,7 +116,6 @@ object ClientFSM {
           */
         NoOp(Synchronized(op.revision))
       } else {
-      //  println("Id does not equals!")
         /** It's an operation from another client we have to transform it
           * and still wait for our confirmation
           */
