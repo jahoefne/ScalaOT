@@ -20,7 +20,7 @@ case class Client(var str: String = "",
   def applyLocal(op: Operation): ApplyResult = {
     revision = revision + 1
     val opRev = op.copy(revision = revision)
-    require(opRev.applyTo(str).isDefined, s"The given operation can't be applied! OpLength ${opRev.baseLength} String Length ${str.length}")
+    require(opRev.applyTo(str).isDefined, s"The given operation can't be applied! $op String Length ${str.length}")
     str = opRev.applyTo(str).get
     handleFMS(state.applyLocal(opRev),opRev)
   }
@@ -30,6 +30,7 @@ case class Client(var str: String = "",
   private def handleFMS(res: Action, op: Operation): ApplyResult = res match {
     case NoOp(newState) =>
       state = newState
+      revision = op.revision
       ApplyResult(None, None)
       
     case Send(sendOp, newState) =>
@@ -40,7 +41,8 @@ case class Client(var str: String = "",
     case Apply(applyOp: Operation, newState) =>
       state = newState
       val applied = applyOp.applyTo(str)
-      require(applied.isDefined, s"Not defined! Tried to ${applyOp.baseLength} on ${this.str.length} new state should be: ${newState}")
+      require(applied.isDefined,
+        s"Not defined! Tried to ${applyOp} apply on ${this.str.length} new state should be: ${newState}, incomming op version: ${op}, client had version: $revision")
       str = applied.get
       revision = op.revision
       ApplyResult(None, Some(applyOp))
@@ -78,6 +80,8 @@ object ClientFSM {
      * If the users triggers an operation -> Send it to the server and wait for the confirmation
      */
     def applyLocal(op: Operation): Action = {
+      println(s"Synchronized: applyLocal $op")
+
       Send(op, AwaitConfirm(op))
     }
 
@@ -85,6 +89,7 @@ object ClientFSM {
      * If we get an operation from the server in synced state we can directly apply it without a transformation
      */
     def applyRemote(op: Operation): Action = {
+      println(s"Synchronized: applyRemote $op")
       Apply(op, Synchronized(op.revision))
     }
   }
@@ -100,6 +105,7 @@ object ClientFSM {
      * Buffer the operation the user triggers until we get the confirmation from the server
      */
     def applyLocal(op: Operation): Action = {
+      println(s"AwaitConfirm: applyLocal $op")
       NoOp(AwaitWithBuffer(outstanding, op))
     }
 
@@ -110,17 +116,24 @@ object ClientFSM {
      * Or the incomming operation is a operation from another client!
      */
     def applyRemote(op: Operation): Action = {
+      println(s"AwaitConfirm: applyRemote $op")
+
       if (op.id == outstanding.id) {
         /** It's our confirmation!
           * We can change back to the synchronized state
           */
+        println("\t It's the confirmation!"+ op)
         NoOp(Synchronized(op.revision))
       } else {
         /** It's an operation from another client we have to transform it
           * and still wait for our confirmation
           */
+        println("\t AwaitConfirm Transformation"+op)
         val pair = Operation.transform(outstanding, op)
-        require(pair.isDefined, "The transformation result is None, like wtf!!!1!1111!")
+
+        require(pair.isDefined,
+          s"The transformation result is None, tried to transform $outstanding" +
+            s"with $op (rev:${op.revision} id:${op.id}")
         val (client, server) = (pair.get.prime1, pair.get.prime2)
         val outstanding2 = outstanding.copy(ops = client.ops)
         Apply(op.copy(ops = server.ops), AwaitConfirm(outstanding2.copy(revision = op.revision + 1)))
@@ -138,16 +151,20 @@ object ClientFSM {
        * The User triggered an operation again and we still didn't get a confirmation from the server.
        * => Combine Operation into buffer and wait for outstanding confirmation
        */
+      println(s"AwaitWithBuffer: applyLocal $op")
       val composition = buffer.compose(op)
       require(composition.isDefined, "The two operations must follow each other directly but are not composeable! This is not possible!")
       NoOp(AwaitWithBuffer(outstanding, composition.get))
     }
 
     def applyRemote(op: Operation): Action = {
+      println(s"AwaitWithBuffer: applyRemote $op")
       if (op.id == outstanding.id) {
-        val newBuf = buffer.copy(revision = op.revision+1)
+        println(s"\tIt's the confirmation ouststanding is $outstanding")
+        val newBuf = buffer.copy(revision = outstanding.revision+1)
         Send(newBuf, AwaitConfirm(newBuf))
       } else {
+        println(s"\tIt's NOT the confirmation")
         val pair = Operation.transform(outstanding, op)
         require(pair.isDefined, "The first transformation result is None!")
         val (client, server) = (pair.get.prime1, pair.get.prime2)

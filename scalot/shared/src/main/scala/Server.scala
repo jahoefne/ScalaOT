@@ -20,11 +20,18 @@ case class Server(var str: String,
         if (droped.nonEmpty) {
           val resolved = droped.foldRight(op)((curr, res) =>  {
             val result = Operation.transform(res, curr)
-            require(result.isDefined,
-              s"Could not transform operations: " +
-                s"\n\t'$curr' (Base:${curr.baseLength} Tgt:${curr.targetLength} ${curr.revision}})  " +
-                s"\n\t$res (Base:${res.baseLength}, Tgt:${res.targetLength} rev: ${res.revision}})" +
-                s"\n droppped is $droped and op is $op (rev: ${op.revision})")
+            if(result.isEmpty){
+              println(s"Droped ${op.revision-1} History Elements of ${operations.length}:")
+              droped.foreach(x => println(s"\t$x Rev: ${x.revision} BaseLen: ${x.baseLength}"))
+              println("History:")
+              operations.foreach(x => println(s"\t$x Rev: ${x.revision} BaseLen: ${x.baseLength}"))
+              println("Tried to combine operations:")
+              println(s"\tOp1: $res")
+              println(s"\tOp2: $curr")
+              println(s"\t Incomming OP is : ${op} Rev: ${op.revision} BaseLen: ${op.baseLength}")
+              Console.flush()
+            }
+            require(result.isDefined)
             result.get.prime1 }
           ).copy(revision = operations.length+1,id = op.id)
           str = resolved.applyTo(str).get // apply operation to our text

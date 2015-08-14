@@ -44,16 +44,16 @@ case class Operation(ops: Seq[Component] = Seq[Component](),
 
   def delete(comp: DelComp): Operation = delete(comp.length)
 
-  override def toString: String = {
+  override def toString: String = s"(Rev: $revision, Id: $id, base:$baseLength, tgt:$targetLength ops:{"+{
     for (op <- ops) yield {
-      s" [${op.getClass.getSimpleName} ${op.length} ${
+      s"[${op.getClass.getSimpleName} ${op.length} ${
         op match {
           case x: InsComp => s"'${x.str}'"
           case _ =>
         }
       }]"
     }
-  }.mkString(" -> ")
+  }.mkString(",") + "})"
 
   /**
    * Applies the operation to an input String

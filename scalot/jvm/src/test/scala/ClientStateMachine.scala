@@ -48,6 +48,7 @@ object ClientStateMachine {
       /** it should return a confirmation package with the same revision / uuid */
       assert(response.isDefined && response.get.id == send1.send.get.id && response.get.revision == send1.send.get.revision)
       /** Applying this confirmation to the client */
+
       val send4 = client1.applyRemote(response.get)
 
       /** Should shift the client in AwaitConfirm state and return a composition of the buffer (send2/send3) which should
@@ -258,7 +259,7 @@ object ClientStateMachine {
 
       val response1 = server.receiveOperation(send1.send.get)
       val response2 = server.receiveOperation(send2.send.get)
-      assert(response1.isDefined,response2.isDefined)
+      assert(response1.isDefined, response2.isDefined)
 
       val send5 = client1.applyRemote(response1.get)
       assert(send5.send.isDefined, send5.apply.isEmpty)
@@ -300,21 +301,22 @@ object ClientStateMachine {
 
       val send1 = client1.applyLocal(op1)
       val send2 = client2.applyLocal(op2)
+      val send3 = client2.applyLocal(op3)
 
-      val response1 = server.receiveOperation(send1.send.get)
-      val response2 = server.receiveOperation(send1.send.get)
-
-      val send3 = client1.applyRemote(response1.get)
-      val send5 = client1.applyRemote(response2.get)
-
+      val response1 = server.receiveOperation(send2.send.get)
       val send4 = client2.applyRemote(response1.get)
-      val send6 = client2.applyRemote(response2.get)
-      assert(send5.send.isEmpty,send6.send.isEmpty)
-      assert(send3.send.isEmpty,send4.send.isEmpty)
+      val response2 = server.receiveOperation(send4.send.get)
+      client2.applyRemote(response2.get)
 
-      println(s"Client1: ${client1.str}")
-      println(s"Client2: ${client2.str}")
-      println(s"Client3: ${server.str}")
+      val response3 = server.receiveOperation(send1.send.get)
+      client1.applyRemote(response1.get)
+      client1.applyRemote(response2.get)
+      client1.applyRemote(response3.get)
+      client2.applyRemote(response3.get)
+      println(client1.str)
+      println(client2.str)
+      println(server.str)
+      assert(client1.str == client2.str, client1.str == server.str)
     }
   }
 
