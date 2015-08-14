@@ -1,18 +1,16 @@
 version := "0.2"
 
 lazy val scalot = crossProject
-  /* .crossType(CrossType.Pure)*/
   .settings(
     name := "scalot",
     organization := "com.github.jahoefne",
-    version := "0.3.4",
+    version := "0.4",
     scalaVersion := "2.11.7",
 
     unmanagedSourceDirectories in Compile += {
       val v = if (scalaVersion.value startsWith "2.10.") "scala-2.10" else "scala-2.11"
       baseDirectory.value / ".." / "shared" / "src" / "main" / v
     },
-
     publishArtifact in Test := false,
     publishTo := {
       if (isSnapshot.value)
@@ -46,9 +44,8 @@ lazy val scalot = crossProject
   .jsSettings()
   .jvmSettings(
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "upickle" % "0.3.4",
-      "com.lihaoyi" %% "utest" % "0.3.1")
-  )
+  "com.lihaoyi" %%% "upickle" % "0.3.4",
+  "com.lihaoyi" %%% "utest" % "0.3.1"))
 
 lazy val scalotJVM = scalot.jvm
 lazy val scalotJS = scalot.js
