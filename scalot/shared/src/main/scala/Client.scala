@@ -10,6 +10,7 @@ case class ApplyResult(send:Option[Operation], apply: Option[Operation])
 case class Client(var str: String = "",
                   var revision: Int = 0,
                   var title: String = "",
+                  var docType: String = "",
                   id: String = Random.alphanumeric.take(20).mkString) {
 
   import ClientFSM._
@@ -80,8 +81,6 @@ object ClientFSM {
      * If the users triggers an operation -> Send it to the server and wait for the confirmation
      */
     def applyLocal(op: Operation): Action = {
-      println(s"Synchronized: applyLocal $op")
-
       Send(op, AwaitConfirm(op))
     }
 
@@ -89,7 +88,6 @@ object ClientFSM {
      * If we get an operation from the server in synced state we can directly apply it without a transformation
      */
     def applyRemote(op: Operation): Action = {
-      println(s"Synchronized: applyRemote $op")
       Apply(op, Synchronized(op.revision))
     }
   }
@@ -105,7 +103,6 @@ object ClientFSM {
      * Buffer the operation the user triggers until we get the confirmation from the server
      */
     def applyLocal(op: Operation): Action = {
-      println(s"AwaitConfirm: applyLocal $op")
       NoOp(AwaitWithBuffer(outstanding, op))
     }
 
@@ -116,19 +113,16 @@ object ClientFSM {
      * Or the incomming operation is a operation from another client!
      */
     def applyRemote(op: Operation): Action = {
-      println(s"AwaitConfirm: applyRemote $op")
 
       if (op.id == outstanding.id) {
         /** It's our confirmation!
           * We can change back to the synchronized state
           */
-        println("\t It's the confirmation!"+ op)
         NoOp(Synchronized(op.revision))
       } else {
         /** It's an operation from another client we have to transform it
           * and still wait for our confirmation
           */
-        println("\t AwaitConfirm Transformation"+op)
         val pair = Operation.transform(outstanding, op)
 
         require(pair.isDefined,
@@ -151,20 +145,16 @@ object ClientFSM {
        * The User triggered an operation again and we still didn't get a confirmation from the server.
        * => Combine Operation into buffer and wait for outstanding confirmation
        */
-      println(s"AwaitWithBuffer: applyLocal $op")
       val composition = buffer.compose(op)
       require(composition.isDefined, "The two operations must follow each other directly but are not composeable! This is not possible!")
       NoOp(AwaitWithBuffer(outstanding, composition.get))
     }
 
     def applyRemote(op: Operation): Action = {
-      println(s"AwaitWithBuffer: applyRemote $op")
       if (op.id == outstanding.id) {
-        println(s"\tIt's the confirmation ouststanding is $outstanding")
         val newBuf = buffer.copy(revision = outstanding.revision+1)
         Send(newBuf, AwaitConfirm(newBuf))
       } else {
-        println(s"\tIt's NOT the confirmation")
         val pair = Operation.transform(outstanding, op)
         require(pair.isDefined, "The first transformation result is None!")
         val (client, server) = (pair.get.prime1, pair.get.prime2)
