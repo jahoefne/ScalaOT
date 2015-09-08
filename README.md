@@ -1,5 +1,9 @@
 # Scalot
 
+Add to your SBT Project with
+`libraryDependencies += "com.github.jahoefne" % "scalot_2.11" % "1.0"`
+
+
 **Scalot** provides easy Operational Transformations to enable collaborative text editing.
 It works on both ScalaJS and the JVM and it is very easy to use.
 

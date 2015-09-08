@@ -290,42 +290,6 @@ object ClientStateMachine {
       assert(client1.str == client2.str, server.str == client2.str)
     }
 
-    "Big Difference Test" - {
-      val server = Server("")
-      val client1 = Client("", 0)
-
-      val op1 = Operation().insert("World!")
-      val op2 = Operation().skip(6).insert("Foo")
-      val op3 = Operation().skip(9).insert(" Bar")
-      val op4 = Operation().skip(13).insert(" Baz")
-
-      /** Let's build up some history on the server side */
-      val send1 = client1.applyLocal(op1).send.get
-      val res1 = server.receiveOperation(send1).get
-      client1.applyRemote(res1)
-
-      val send2 = client1.applyLocal(op2).send.get
-      val res2 = server.receiveOperation(send2).get
-      client1.applyRemote(res2)
-
-      val send3 = client1.applyLocal(op3).send.get
-      val res3 = server.receiveOperation(send3).get
-      client1.applyRemote(res3)
-
-      val send4 = client1.applyLocal(op4).send.get
-      val res4 = server.receiveOperation(send4).get
-      client1.applyRemote(res4)
-
-      /** Now another client joins at revision 0 and triggers a operation*/
-      val client2 = Client("", 0)
-      val op5 = Operation().insert("Hello")
-      val send5 = client2.applyLocal(op5).send.get
-      val res5 = server.receiveOperation(send3).get
-      client2.applyRemote(res5)
-
-
-    }
-
   }
 
   def main(args: Array[String]) {

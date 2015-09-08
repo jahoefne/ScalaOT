@@ -1,7 +1,5 @@
 package scalot
 
-import java.util.UUID
-
 import scala.util.Random
 
 

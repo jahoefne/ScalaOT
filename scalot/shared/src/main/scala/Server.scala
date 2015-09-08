@@ -14,26 +14,26 @@ case class Server(var str: String,
                   var docType: String = "",
                   id: String = Random.alphanumeric.take(20).mkString) {
 
-  def receiveOperation(op: Operation): Option[Operation] = {
-    op.revision > 0 match {
-      case true =>
-        val droped = operations.dropRight(op.revision - 1) // take all operations that happened concurrently
-        if (droped.nonEmpty) {
-          val resolved = droped.foldRight(op)((curr, res) => {
-            val result = Operation.transform(res, curr)
-            require(result.isDefined)
-            result.get.prime1
-          }
-          ).copy(revision = operations.length + 1, id = op.id)
-          str = resolved.applyTo(str).get // apply operation to our text
-          operations = resolved :: operations // store operation in history
-          Some(resolved)
-        } else {
-          str = op.applyTo(str).get // apply operation to out text
-          operations = op :: operations // store operation in history
-          Some(op)
-        }
-      case _ => None
-    }
-  }
+def receiveOperation(op: Operation): Option[Operation] = {
+op.revision > 0 match {
+case true =>
+val droped = operations.dropRight(op.revision - 1) // take all operations that happened concurrently
+if (droped.nonEmpty) {
+val resolved = droped.foldRight(op)((curr, res) => {
+val result = Operation.transform(res, curr)
+require(result.isDefined)
+result.get.prime1
+}
+).copy(revision = operations.length + 1, id = op.id)
+str = resolved.applyTo(str).get // apply operation to our text
+operations = resolved :: operations // store operation in history
+Some(resolved)
+} else {
+str = op.applyTo(str).get // apply operation to out text
+operations = op :: operations // store operation in history
+Some(op)
+}
+case _ => None
+}
+}
 }

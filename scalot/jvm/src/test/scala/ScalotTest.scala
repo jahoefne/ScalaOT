@@ -40,10 +40,6 @@ object ScalotTest{
         val resB = opB.applyTo(str).get
 
         val trans = Operation.transform(opA, opB).get
-        // println(s"Input String Length ${str.length}")
-        // println(s"Prime1: base(${trans.prime1.baseLength} should be ${resB.length}}) target(${trans.prime1.targetLength})  \n\t${trans.prime1}")
-        // println(s"Prime2: base(${trans.prime2.baseLength} should be ${resA.length}) target(${trans.prime2.targetLength})  \n\t${trans.prime2}")
-
         val resAB = trans.prime2.applyTo(resA)
         val resBA = trans.prime1.applyTo(resB)
         //info(resAB)

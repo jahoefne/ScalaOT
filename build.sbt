@@ -4,7 +4,7 @@ lazy val scalot = crossProject
   .settings(
     name := "scalot",
     organization := "com.github.jahoefne",
-    version := "0.4.4-SNAPSHOT",
+    version := "1.0",
     scalaVersion := "2.11.7",
 
     unmanagedSourceDirectories in Compile += {
